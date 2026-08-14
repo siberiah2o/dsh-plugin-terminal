@@ -18,11 +18,11 @@
 ## 功能
 
 - 输入框下方的停靠条，点击展开/折叠；终端会话在折叠和切换会话时保持存活（host 持有）
-- SSE 实时输出流 + 快照回放（重连不断档）
-- 输入行支持 Enter 发送、Tab 补全、↑/↓ 历史、Ctrl+C 中断
-- 面板尺寸变化自动 resize PTY（按字符宽度测量）
+- **xterm.js 6 完整 VT 仿真**：颜色、闪烁光标、备用屏幕（vim/htop 全屏程序）、Unicode 宽度、5000 行回滚——与原生终端一致
+- WebSocket 双向通道（`ws`）——低延迟、与 PTY 直连；HTTP/SSE 路由保留为兼容面
+- `@xterm/addon-fit`：面板尺寸变化时按字符网格精确 resize PTY
 - 重新开始 / 关闭会话；刷新页面后自动重连最新存活会话
-- 行级终端模拟：ANSI 清洗 + `\r` 覆盖重绘 + 清屏后光标占位抑制（纯文本渲染，xterm.js 全屏渲染在路线图上）
+- 客户端 bundle 自包含（xterm.js 内嵌，350KB），通过 esbuild 构建（`build.mjs`）
 
 ## 安装
 
@@ -56,7 +56,10 @@ dsh --profile web --patch <本仓库路径>/cordis.patch.yml --port 3081
 |---|---|---|
 | GET | `/terminal-panel/sessions` | 列出会话 |
 | POST | `/terminal-panel/sessions` | 创建（body: `{cols?, rows?, cwd?, shell?}`） |
-| GET | `/terminal-panel/sessions/:id/stream` | SSE：`snapshot` / `data` / `exit` 事件 |
+| GET | `/terminal-panel/sessions/:id/stream` | SSE（兼容面）：`snapshot` / `data` / `exit` 事件 |
+| GET | `/terminal-panel/sessions/:id/snapshot` | 原始字节缓冲（xterm 回放） |
+| WS | `/terminal-panel/ws/:id` | 双向通道：PTY 输出下行、输入/resize 上行 |
+| GET | `/terminal-panel/xterm.css` | xterm 样式表 |
 | POST | `/terminal-panel/sessions/:id/input` | 写入（body: `{data}`，`\r` 为回车） |
 | POST | `/terminal-panel/sessions/:id/resize` | 调整尺寸（body: `{cols, rows}`） |
 | DELETE | `/terminal-panel/sessions/:id` | 关闭会话 |
@@ -64,8 +67,8 @@ dsh --profile web --patch <本仓库路径>/cordis.patch.yml --port 3081
 ## 开发
 
 ```powershell
+node build.mjs              # esbuild 构建客户端 bundle（xterm 内嵌 -> lib/client.js + lib/client.css）
 node tests/test-e2e.mjs     # 对运行中的实例做 PTY 全链路测试（先起 3081 测试实例）
-node tests/test-client.mjs  # 模拟浏览器加载 client bundle 并做静态渲染冒烟
 ```
 
 包声明见 `package.json` 的 `dsh.client` 字段（platform: web，惰性加载）；client bundle 遵循 DSH 的 `window.__ModuleLoader__.load` 工厂格式。
