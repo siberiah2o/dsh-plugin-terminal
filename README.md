@@ -17,12 +17,18 @@
 
 ## 功能
 
-- 输入框下方的停靠条，点击展开/折叠；终端会话在折叠和切换会话时保持存活（host 持有）
+- 输入框下方的停靠条，点击展开/折叠；视觉规范 1:1 复刻官方 QueueDock（同卡片、同设计令牌、同图标网格），深浅色跟随 DSH 自动切换
+- **多标签页**：`+` 新建终端、每 tab 独立 PTY 会话与回滚、切 tab 不中断进程、✕ 关闭、⟳ 原位重启；刷新页面自动恢复全部存活会话
 - **xterm.js 6 完整 VT 仿真**：颜色、闪烁光标、备用屏幕（vim/htop 全屏程序）、Unicode 宽度、5000 行回滚——与原生终端一致
 - WebSocket 双向通道（`ws`）——低延迟、与 PTY 直连；HTTP/SSE 路由保留为兼容面
 - `@xterm/addon-fit`：面板尺寸变化时按字符网格精确 resize PTY
-- 重新开始 / 关闭会话；刷新页面后自动重连最新存活会话
-- 客户端 bundle 自包含（xterm.js 内嵌，350KB），通过 esbuild 构建（`build.mjs`）
+- 客户端 bundle 自包含（xterm.js 内嵌，~360KB），通过 esbuild 构建（`build.mjs`）
+
+## 截图
+
+| 折叠停靠条 | 多标签终端 |
+|---|---|
+| ![折叠](docs/screenshot-collapsed.png) | ![多标签](docs/screenshot-multitab.png) |
 
 ## 安装
 
