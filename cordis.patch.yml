@@ -1,8 +1,7 @@
-# Web 覆盖层（overlay）：把 dsh-plugin-terminal 插入运行中的 profile。
-# 开发/测试用法（独立实例，不影响 3080 上的现有服务）：
-#   dsh --profile web --patch E:/gogame/dsh-plugin-terminal/cordis.patch.yml --port 3081
-# 常驻用法：把下面的 insert 行并入 ~/.dsh/profiles/web/cordis.patch.yml 后重启 dsh web。
-# 前置：dsh plugin --profile web add -w --link E:/gogame/dsh-plugin-terminal
+# dsh-plugin-terminal bundle patch - mounts the terminal panel plugin as a
+# profile layer. Declared by package.json's dsh.bundle.patch: installing the
+# package via `dsh plugin --profile web add dsh-plugin-terminal` reconciles it
+# into dsh.profile.bundles and this layer is applied automatically.
 - insert:
   - id: terminal-panel
     name: dsh-plugin-terminal

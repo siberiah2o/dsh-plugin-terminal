@@ -19,41 +19,39 @@
 | 症状 | 处理 |
 |---|---|
 | PTY 启动失败（`posix_spawnp failed`） | node-pty 预编译的 `spawn-helper` 丢失可执行位：`chmod +x <repo>/node_modules/.pnpm/node-pty@*/node_modules/node-pty/prebuilds/<platform>-<arch>/spawn-helper` |
-| pnpm 提示 `Ignored build scripts: node-pty` | 在 `pnpm-workspace.yaml` 声明 `onlyBuiltDependencies`（见安装第 3 步）后重跑 `pnpm install` |
-| 刷新后面板不出现 | 确认 patch 层已生效（`dsh --profile web --dump-config` 应含 `terminal-panel`），并已重启 `dsh web` |
+| pnpm 提示 `Ignored build scripts: node-pty` | 在 profile 的 `pnpm-workspace.yaml` 声明 `onlyBuiltDependencies`（见安装说明）后重跑 `pnpm install` |
+| 刷新后面板不出现 | 确认插件已进层栈（`dsh --profile web --dump-config` 应含 `terminal-panel`），并已重启 `dsh web` |
 
 ## 安装说明
 
 前置：已安装 `dsh` 并初始化过 web profile（`~/.dsh/profiles/web`）；需要 `pnpm`（`dsh plugin` 会把参数转发给 pnpm）。
 
-```powershell
-# 1. 把本包链接进 profile（开发模式，改代码即时生效）
+### 一行安装（npm 已发布版本）
+
+```sh
+# 安装（声明了 dsh.bundle，自动进入 profile 层栈，无需手动配置）
+dsh plugin --profile web add dsh-plugin-terminal
+
+# 重启生效
+# （若 pnpm 提示 Ignored build scripts: node-pty，先在 profile 的 pnpm-workspace.yaml 加入：）
+# onlyBuiltDependencies:
+#   - node-pty
+# 然后重新执行上面的 add 命令
+dsh web
+```
+
+### 本地/开发安装（改代码即时生效）
+
+```sh
 dsh plugin --profile web add -w --link <本仓库路径>
-
-# 2. 把 cordis.patch.yml 里的 insert 行并入 profile 的 patch 层：
-#    ~/.dsh/profiles/web/cordis.patch.yml
-- insert:
-  - id: terminal-panel
-    name: dsh-plugin-terminal
-
-# 3. 首次安装需放行 node-pty 原生构建脚本（pnpm 10+ 默认拦截）：
-#    在本仓库的 pnpm-workspace.yaml 中加入
-onlyBuiltDependencies:
-  - node-pty
-#    然后安装插件依赖
-pnpm install
-
-# 4. 重启
 dsh web
 ```
 
 只想临时试用（不动 profile 配置，另起端口）：
 
-```powershell
+```sh
 dsh --profile web --patch <本仓库路径>/cordis.patch.yml --port 3081
 ```
-
-> **Windows 注意**：`--patch` 覆盖层里引用本地 `.ts/.js` 文件时，绝对路径必须写成 `file:///E:/...` URL；引用已安装包名（如本插件）则无此问题。
 
 > **生效范围**：client bundle（`lib/client.js`）的改动刷新页面即可生效；**host 端（`lib/index.js`）的改动需要重启 `dsh web`**（新路由/WS 端点注册发生在启动期）。
 
