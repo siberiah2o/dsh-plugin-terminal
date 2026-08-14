@@ -1,0 +1,36 @@
+{
+  "name": "dsh-plugin-terminal",
+  "version": "0.1.0",
+  "description": "Bottom terminal panel plugin for DeepSeek Harness Web GUI (node-pty powered, works on Windows via ConPTY)",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-conversation"
+      ],
+      "immediately": false
+    }
+  },
+  "dependencies": {
+    "node-pty": "^1.1.0"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/siberiah2o/dsh-plugin-terminal.git"
+  },
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "terminal",
+    "pty",
+    "plugin"
+  ]
+}
