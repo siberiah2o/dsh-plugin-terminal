@@ -4,6 +4,14 @@ Bottom terminal panel for the DeepSeek Harness (DSH) Web GUI — an interactive 
 
 [中文](README.zh.md) · MIT
 
+## Install
+
+```sh
+dsh plugin --profile web add dsh-plugin-terminal && dsh web
+```
+
+> Note: this is a DSH (DeepSeek Harness) plugin — do **not** use plain `npm i dsh-plugin-terminal`; it must be installed through `dsh plugin` to activate.
+
 ## Screenshots
 
 | Collapsed | Expanded | Multi-tab |
@@ -17,12 +25,6 @@ Bottom terminal panel for the DeepSeek Harness (DSH) Web GUI — an interactive 
 - Multi-tab: `+` new, ✕ close, ⟳ restart; processes keep running on tab switch; live sessions restore after refresh
 - xterm.js 6: colors, blinking cursor, alternate screen, Unicode, 5000-line scrollback
 - WebSocket duplex channel to the PTY; dark terminal surface in both light and dark themes
-
-## Install
-
-```sh
-dsh plugin --profile web add dsh-plugin-terminal && dsh web
-```
 
 ## License
 
