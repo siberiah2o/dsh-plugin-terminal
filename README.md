@@ -50,6 +50,8 @@ dsh --profile web --patch <本仓库路径>/cordis.patch.yml --port 3081
 
 > Windows 注意：`--patch` 覆盖层里引用本地 `.ts/.js` 文件时，绝对路径必须写成 `file:///E:/...` URL；引用已安装包名（如本插件）则无此问题。
 
+> HMR 范围：client bundle（`lib/client.js`）的改动会被 `dsh-client-hmr` 自动热更新（刷新页面生效）；**host 端（`lib/index.js`）的改动需要重启 `dsh web`** 才生效（新路由/WS 端点注册发生在启动期）。
+
 ## API（host 路由）
 
 | 方法 | 路径 | 说明 |
