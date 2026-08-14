@@ -1,6 +1,6 @@
 # dsh-plugin-terminal
 
-> DeepSeek Harness (DSH) Web GUI 的底部终端面板插件 —— 在输入框下方挂一个真正可交互的 shell（Windows 走 ConPTY，Linux/macOS 走 openpty）。
+> DeepSeek Harness (DSH) Web GUI 的 **Codex 式底部终端面板**插件 —— 在页面底部挂一个真正可交互的多标签 shell（Windows 走 ConPTY，Linux/macOS 走 openpty）。
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -8,8 +8,8 @@
 
 一个 Cordis 双端插件：
 
-- **Host 端**（`lib/index.js`）：用 [node-pty](https://github.com/microsoft/node-pty) 管理 PTY 会话，在 `ctx.webServer` 上注册 `/terminal-panel/*` 路由（REST + SSE）。
-- **Client 端**（`lib/client.js`）：以 `window.__ModuleLoader__` bundle 形式加载，注册进 DSH 的 `conversation.input.dock` slot（todo/queue 停靠条的同款位置），提供折叠条 + 终端面板 + 输入行。
+- **Host 端**（`lib/index.js`）：用 [node-pty](https://github.com/microsoft/node-pty) 管理 PTY 会话，在 `ctx.webServer` 上注册 `/terminal-panel/*` 路由（REST + SSE + WebSocket）。
+- **Client 端**（`lib/client.js`）：以 `window.__ModuleLoader__` bundle 形式加载，注册进 DSH 的 `conversation.input.dock` slot，渲染为**固定在视口底部的全功能终端面板**。
 
 ### 为什么不直接用 `ctx.terminals` / `ctx.subprocess.spawnTerminal()`
 
@@ -17,22 +17,20 @@
 
 ## 功能
 
-- 输入框下方的停靠条，点击展开/折叠；视觉规范 1:1 复刻官方 QueueDock（同卡片、同设计令牌、同图标网格），深浅色跟随 DSH 自动切换
-- **多标签页**：`+` 新建终端、每 tab 独立 PTY 会话与回滚、切 tab 不中断进程、✕ 关闭、⟳ 原位重启；刷新页面自动恢复全部存活会话
+- **Codex 式底部面板**：贴底 `position: fixed`，宽度实时对齐中间对话列（拖拽/折叠侧栏、开关右侧栏时自动跟随，不覆盖侧栏）；**输入框永远悬浮在终端上方**，展开面板不影响对话输入
+- **快捷键与交互**：`Ctrl+`` 一键展开/收起；拖拽面板顶部 grip 调整高度（120px ~ 78% 视口，记忆到 `localStorage`）；折叠时是一条 34px 细条，显示当前会话状态
+- **多标签页**：`+` 新建终端、每 tab 独立 PTY 会话与回滚、切 tab 不中断进程、✕ 关闭、⟳ 原位重启；**刷新页面自动恢复全部存活会话**
 - **xterm.js 6 完整 VT 仿真**：颜色、闪烁光标、备用屏幕（vim/htop 全屏程序）、Unicode 宽度、5000 行回滚——与原生终端一致
-- WebSocket 双向通道（`ws`）——低延迟、与 PTY 直连；HTTP/SSE 路由保留为兼容面
-- `@xterm/addon-fit`：面板尺寸变化时按字符网格精确 resize PTY
+- **WebSocket 双向通道**（`ws`）：低延迟、与 PTY 直连；HTTP/SSE 路由保留为兼容面
+- **`@xterm/addon-fit`**：面板尺寸变化时按字符网格精确 resize PTY
+- **暗色终端表面**：Windows Terminal "Campbell" 调色板，深浅主题下所有 ANSI 颜色均可读
 - 客户端 bundle 自包含（xterm.js 内嵌，~360KB），通过 esbuild 构建（`build.mjs`）
 
-## 截图
-
-| 折叠停靠条 | 多标签终端 |
-|---|---|
-| ![折叠](docs/screenshot-collapsed.png) | ![多标签](docs/screenshot-multitab.png) |
+> UI 截图待更新（面板已改为 Codex 式底部布局）。
 
 ## 安装
 
-前置：已安装 `dsh` 并初始化过 web profile（`~/.dsh/profiles/web`）。
+前置：已安装 `dsh` 并初始化过 web profile（`~/.dsh/profiles/web`）；需要 `pnpm`（`dsh plugin` 会把参数转发给 pnpm）。
 
 ```powershell
 # 1. 把本包链接进 profile（开发模式，改代码即时生效）
@@ -44,7 +42,14 @@ dsh plugin --profile web add -w --link <本仓库路径>
   - id: terminal-panel
     name: dsh-plugin-terminal
 
-# 3. 重启
+# 3. 首次安装需放行 node-pty 原生构建脚本（pnpm 10+ 默认拦截）：
+#    在本仓库的 pnpm-workspace.yaml 中加入
+onlyBuiltDependencies:
+  - node-pty
+#    然后安装插件依赖
+pnpm install
+
+# 4. 重启
 dsh web
 ```
 
@@ -54,9 +59,17 @@ dsh web
 dsh --profile web --patch <本仓库路径>/cordis.patch.yml --port 3081
 ```
 
-> Windows 注意：`--patch` 覆盖层里引用本地 `.ts/.js` 文件时，绝对路径必须写成 `file:///E:/...` URL；引用已安装包名（如本插件）则无此问题。
+> **Windows 注意**：`--patch` 覆盖层里引用本地 `.ts/.js` 文件时，绝对路径必须写成 `file:///E:/...` URL；引用已安装包名（如本插件）则无此问题。
 
-> HMR 范围：client bundle（`lib/client.js`）的改动会被 `dsh-client-hmr` 自动热更新（刷新页面生效）；**host 端（`lib/index.js`）的改动需要重启 `dsh web`** 才生效（新路由/WS 端点注册发生在启动期）。
+> **生效范围**：client bundle（`lib/client.js`）的改动刷新页面即可生效；**host 端（`lib/index.js`）的改动需要重启 `dsh web`**（新路由/WS 端点注册发生在启动期）。
+
+## 疑难排查
+
+| 症状 | 处理 |
+|---|---|
+| PTY 启动失败（`posix_spawnp failed`） | node-pty 预编译的 `spawn-helper` 有时丢失可执行位：`chmod +x <repo>/node_modules/.pnpm/node-pty@*/node_modules/node-pty/prebuilds/<platform>-<arch>/spawn-helper` |
+| pnpm 提示 `Ignored build scripts: node-pty` | 按安装第 3 步在 `pnpm-workspace.yaml` 声明 `onlyBuiltDependencies` 后重跑 `pnpm install` |
+| 刷新后面板不出现 | 确认 patch 层已生效（`dsh --profile web --dump-config` 应含 `terminal-panel`），并已重启 `dsh web` |
 
 ## API（host 路由）
 
@@ -84,7 +97,6 @@ node tests/test-e2e.mjs     # 对运行中的实例做 PTY 全链路测试（先
 ## 路线图
 
 - [ ] xterm.js 全屏渲染（canvas + 转义序列完整支持）
-- [ ] 多会话标签页
 - [ ] 上游 `dsh-terminal` seam 补齐 Windows 后切换到 `ctx.terminals`
 - [ ] 滚动回看分页（服务端 ring buffer 分页读取）
 

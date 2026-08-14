@@ -1,15 +1,22 @@
 /**
- * dsh-plugin-terminal - client half (xterm.js, multi-tab, DSH-native styling).
- * Each tab owns an independent PTY session + xterm instance + WebSocket;
+ * dsh-plugin-terminal - client half (xterm.js, multi-tab, Codex-style bottom
+ * panel). Each tab owns an independent PTY session + xterm instance + WebSocket;
  * switching tabs only swaps the visible pane - processes and scrollback stay.
- * Refresh restores every live session as its own tab. Visual language copied
- * from the official QueueDock (tokens, 36px header, 28px round actions).
+ * Refresh restores every live session as its own tab.
+ *
+ * Layout: a full-width panel pinned to the viewport bottom (like the terminal
+ * zone of Codex/VS Code bottom panels). Collapsed it is a single 34px bar;
+ * expanded it grows upward with a drag-to-resize grip. Ctrl+` toggles it.
+ * Visual language follows DSH design tokens, with the xterm surface always
+ * dark (Campbell palette) so shell colors read in both themes.
  */
 import React from "react";
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 
 const PREFIX = "/terminal-panel";
+const HEIGHT_KEY = "dsh-plugin-terminal.height";
+const MIN_HEIGHT = 120;
 
 /* xterm stylesheet served by the host plugin */
 const XTERM_CSS_TAG = "dsh-plugin-terminal-xterm-css";
@@ -21,9 +28,9 @@ if (typeof document !== "undefined" && document.getElementById(XTERM_CSS_TAG) ==
   document.head.appendChild(link);
 }
 
-/* panel skin - design tokens identical to QueueDock.module.css */
+/* Codex-style bottom panel skin (DSH design tokens; terminal surface dark). */
 const STYLE_TAG = "dsh-plugin-terminal-styles";
-const PANEL_CSS = ".dshTermDock{box-sizing:border-box;width:calc(100% - var(--dsh-composer-side-clearance) - var(--dsh-composer-side-clearance) - var(--dsh-composer-dock-inset) - var(--dsh-composer-dock-inset));max-width:calc(var(--dsh-composer-card-max-width) - var(--dsh-composer-dock-inset) - var(--dsh-composer-dock-inset));margin:0 auto calc(0px - var(--dsh-composer-stack-gap) - 3px);padding:0 var(--dsh-composer-dock-inset);flex:none}\n.dshTermCard{background:var(--dsw-specific-tip);--dsh-scrollbar-thumb:var(--dsw-alias-scrollbar-bg-l2);--dsh-scrollbar-thumb-hover:var(--dsw-alias-scrollbar-hover-l2);border-radius:12px 12px 0 0;width:100%;padding:2px 0 0;position:relative;overflow:hidden}\n.dshTermCard:after{border:1px solid var(--dsw-alias-border-l1);border-radius:inherit;content:'';pointer-events:none;border-bottom:none;position:absolute;inset:0}\n.dshTermHeader{box-sizing:border-box;width:100%;height:36px;color:var(--dsw-alias-label-primary);text-align:left;cursor:pointer;background:0 0;border:none;align-items:center;gap:10px;padding:4px 12px;display:flex}\n.dshTermHeader:focus-visible{outline:2px solid var(--dsw-alias-label-tertiary);outline-offset:-2px}\n.dshTermLead{color:var(--dsw-alias-label-tertiary);flex:none;place-items:center;display:grid}\n.dshTermTitle{min-width:0;font-family:Inter,var(--dsw-font-family);flex:none;font-size:13px;font-weight:500;line-height:24px}\n.dshTermState{min-width:0;flex:auto;color:var(--dsw-alias-label-tertiary);font-family:Inter,var(--dsw-font-family);font-size:12px;line-height:24px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}\n.dshTermActions{flex:none;align-items:center;gap:2px;display:flex;margin:0 2px 0 -6px}\n.dshTermAction{width:28px;height:28px;color:var(--dsw-alias-label-tertiary);cursor:pointer;background:0 0;border:none;border-radius:999px;flex:none;place-items:center;padding:0;display:grid}\n.dshTermAction:hover:not(:disabled){background:var(--dsw-alias-interactive-bg-hover)}\n.dshTermAction:focus-visible{outline:2px solid var(--dsw-alias-label-tertiary);outline-offset:-2px}\n.dshTermAction:disabled{cursor:default;opacity:.45}\n.dshTermChevron{width:14px;height:14px;color:var(--dsw-alias-label-tertiary);flex:none;place-items:center;display:grid}\n.dshTermTabs{display:flex;align-items:center;gap:2px;padding:0 10px 6px;overflow-x:auto;flex:none;scrollbar-width:none}\n.dshTermTab{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 6px 0 10px;border-radius:8px;border:none;background:transparent;color:var(--dsw-alias-label-tertiary);font-family:Inter,var(--dsw-font-family);font-size:12px;font-weight:500;cursor:pointer;flex:none;max-width:180px}\n.dshTermTab:hover{background:var(--dsw-alias-interactive-bg-hover)}\n.dshTermTab.isActive{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}\n.dshTermTab.isActive:focus-visible,.dshTermTab:focus-visible{outline:2px solid var(--dsw-alias-label-tertiary);outline-offset:-2px}\n.dshTermTab.isExited{opacity:.5}\n.dshTermTab.isExited .dshTermTabLabel{text-decoration:line-through;text-decoration-thickness:1px}\n.dshTermTabLabel{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}\n.dshTermTabLead{display:grid;place-items:center;flex:none;opacity:.7}\n.dshTermTabClose{width:20px;height:20px;border:none;background:transparent;color:inherit;border-radius:6px;display:grid;place-items:center;cursor:pointer;padding:0;opacity:0;flex:none}\n.dshTermTab:hover .dshTermTabClose,.dshTermTab.isActive .dshTermTabClose{opacity:.65}\n.dshTermTabClose:hover{opacity:1;background:var(--dsw-alias-interactive-bg-hover)}\n.dshTermNew{width:28px;height:28px;flex:none;border:none;background:transparent;color:var(--dsw-alias-label-tertiary);border-radius:999px;display:grid;place-items:center;cursor:pointer;padding:0}\n.dshTermNew:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}\n.dshTermNew:focus-visible{outline:2px solid var(--dsw-alias-label-tertiary);outline-offset:-2px}\n.dshTermBody{position:relative;height:clamp(180px,32vh,420px);background:#1e2128;box-shadow:inset 0 1px 0 var(--dsw-alias-border-l1)}\n.dshTermPane{position:absolute;inset:0;display:none;padding:4px 10px 8px;background:#1e2128}\n.dshTermPane.isActive{display:block}\n.dshTermEmpty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:10px;color:#8b90a0;font-family:Inter,var(--dsw-font-family);font-size:12px}\n.dshTermEmptyBtn{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 12px;border-radius:8px;border:none;background:transparent;color:#e6e8ee;font-family:Inter,var(--dsw-font-family);font-size:12px;font-weight:500;cursor:pointer}\n.dshTermEmptyBtn:hover{background:#2a2e38}";
+const PANEL_CSS = ".dshTermRoot{position:fixed;bottom:0;z-index:50;font-family:Inter,var(--dsw-font-family)}\n.dshTermBar{box-sizing:border-box;width:100%;height:34px;display:flex;align-items:center;gap:10px;padding:0 14px;background:var(--dsw-specific-tip);border-top:1px solid var(--dsw-alias-border-l1);cursor:pointer;color:var(--dsw-alias-label-primary);text-align:left;user-select:none;-webkit-user-select:none}\n.dshTermBar:focus-visible{outline:2px solid var(--dsw-alias-label-tertiary);outline-offset:-2px}\n.dshTermBarLead{color:var(--dsw-alias-label-tertiary);flex:none;place-items:center;display:grid}\n.dshTermBarTitle{min-width:0;flex:none;font-size:13px;font-weight:500;line-height:24px}\n.dshTermBarState{min-width:0;flex:auto;color:var(--dsw-alias-label-tertiary);font-size:12px;line-height:24px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}\n.dshTermBarActions{flex:none;align-items:center;gap:2px;display:flex}\n.dshTermBarAction{width:28px;height:28px;color:var(--dsw-alias-label-tertiary);cursor:pointer;background:0 0;border:none;border-radius:999px;flex:none;place-items:center;padding:0;display:grid}\n.dshTermBarAction:hover:not(:disabled){background:var(--dsw-alias-interactive-bg-hover)}\n.dshTermBarAction:focus-visible{outline:2px solid var(--dsw-alias-label-tertiary);outline-offset:-2px}\n.dshTermBarAction:disabled{cursor:default;opacity:.45}\n.dshTermBarChevron{width:14px;height:14px;color:var(--dsw-alias-label-tertiary);flex:none;place-items:center;display:grid}\n.dshTermPanel{box-sizing:border-box;width:100%;display:flex;flex-direction:column;background:var(--dsw-specific-tip);border-top:1px solid var(--dsw-alias-border-l1);overflow:hidden;animation:dshTermIn .16s ease-out}\n@keyframes dshTermIn{from{transform:translateY(14px);opacity:.4}to{transform:none;opacity:1}}\n.dshTermResize{flex:none;height:6px;cursor:ns-resize;touch-action:none;position:relative}\n.dshTermResize:after{content:'';position:absolute;left:0;right:0;top:2px;height:2px;border-radius:2px;background:transparent;transition:background .15s}\n.dshTermResize:hover:after{background:var(--dsw-alias-interactive-bg-hover)}\n.dshTermTabs{flex:none;box-sizing:border-box;height:38px;display:flex;align-items:center;gap:2px;padding:0 10px;border-bottom:1px solid var(--dsw-alias-border-l1);overflow-x:auto;scrollbar-width:none}\n.dshTermTabs::-webkit-scrollbar{display:none}\n.dshTermTab{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 6px 0 9px;border-radius:7px;border:none;background:transparent;color:var(--dsw-alias-label-tertiary);font-family:Inter,var(--dsw-font-family);font-size:12px;font-weight:500;cursor:pointer;flex:none;max-width:200px}\n.dshTermTab:hover{background:var(--dsw-alias-interactive-bg-hover)}\n.dshTermTab.isActive{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}\n.dshTermTab:focus-visible{outline:2px solid var(--dsw-alias-label-tertiary);outline-offset:-2px}\n.dshTermTab.isExited{opacity:.5}\n.dshTermTab.isExited .dshTermTabLabel{text-decoration:line-through;text-decoration-thickness:1px}\n.dshTermTabLabel{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}\n.dshTermTabLead{display:grid;place-items:center;flex:none;opacity:.7}\n.dshTermTabClose{width:20px;height:20px;border:none;background:transparent;color:inherit;border-radius:6px;display:grid;place-items:center;cursor:pointer;padding:0;opacity:0;flex:none}\n.dshTermTab:hover .dshTermTabClose,.dshTermTab.isActive .dshTermTabClose{opacity:.65}\n.dshTermTabClose:hover{opacity:1;background:var(--dsw-alias-interactive-bg-hover)}\n.dshTermNew{width:26px;height:26px;flex:none;border:none;background:transparent;color:var(--dsw-alias-label-tertiary);border-radius:7px;display:grid;place-items:center;cursor:pointer;padding:0}\n.dshTermNew:hover:not(:disabled){background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}\n.dshTermNew:focus-visible{outline:2px solid var(--dsw-alias-label-tertiary);outline-offset:-2px}\n.dshTermNew:disabled{cursor:default;opacity:.45}\n.dshTermCollapse{margin-left:auto;flex:none;display:grid;place-items:center;width:26px;height:26px;border:none;background:transparent;color:var(--dsw-alias-label-tertiary);border-radius:7px;cursor:pointer;padding:0}\n.dshTermCollapse:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}\n.dshTermBody{flex:auto;min-height:0;position:relative;background:#1e2128;box-shadow:inset 0 1px 0 var(--dsw-alias-border-l1)}\n.dshTermPane{position:absolute;inset:0;display:none;padding:4px 10px 8px;background:#1e2128}\n.dshTermPane.isActive{display:block}\n.dshTermEmpty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:#8b90a0;font-family:Inter,var(--dsw-font-family);font-size:12px}\n.dshTermEmptyBtn{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 12px;border-radius:8px;border:1px solid var(--dsw-alias-border-l1);background:#2a2e38;color:#e6e8ee;font-family:Inter,var(--dsw-font-family);font-size:12px;font-weight:500;cursor:pointer}\n.dshTermEmptyBtn:hover{background:#343946}\nbody.dshTermResizing{cursor:ns-resize!important;user-select:none!important;-webkit-user-select:none!important}";
 if (typeof document !== "undefined" && document.getElementById(STYLE_TAG) === null) {
   const tag = document.createElement("style");
   tag.id = STYLE_TAG;
@@ -100,6 +107,13 @@ function TerminalGlyph12() {
     React.createElement("rect", { x: 1.35, y: 1.35, width: 11.3, height: 11.3, rx: 2.4, stroke: "currentColor", strokeWidth: 1.1 }),
     React.createElement("path", { d: "M4.75 4.9L7.05 7L4.75 9.1", stroke: "currentColor", strokeWidth: 1.1, strokeLinecap: "round", strokeLinejoin: "round" }),
     React.createElement("path", { d: "M7.75 9.1H10.05", stroke: "currentColor", strokeWidth: 1.1, strokeLinecap: "round" }),
+  );
+}
+function ChevronUp14() {
+  return React.createElement(
+    "svg",
+    { width: 14, height: 14, viewBox: "0 0 14 14", fill: "none", xmlns: "http://www.w3.org/2000/svg" },
+    React.createElement("path", { d: "M5.5 11.8486L5.07617 11.4238L2.34863 8.69727C2.09294 8.44157 1.86618 8.21562 1.70215 8.01172C1.53117 7.79912 1.38244 7.55595 1.33398 7.25C1.30778 7.08435 1.30778 6.91565 1.33398 6.75C1.38244 6.44405 1.53117 6.20088 1.70215 5.98828C1.86618 5.78438 2.09294 5.55843 2.34863 5.30273L5.07617 2.57617L5.5 2.15137L6.34863 3L5.92383 3.42383L3.19727 6.15137C2.92268 6.42595 2.75151 6.59876 2.6377 6.74023C2.53096 6.87291 2.52187 6.92272 2.51953 6.9375C2.51297 6.97895 2.51297 7.02105 2.51953 7.0625C2.52187 7.07728 2.53096 7.12709 2.6377 7.25977C2.75151 7.40124 2.92268 7.57405 3.19727 7.84863L5.92383 10.5762L6.34863 11L5.5 11.8486Z", fill: "currentColor" }),
   );
 }
 function ChevronDown14() {
@@ -241,7 +255,8 @@ function TermPane({ tab, active, onExit }) {
   });
 }
 
-/* the dock panel: tab strip + panes */
+/* Codex-style bottom terminal panel: collapsed 34px bar, expanded full-width
+ * draggable panel. Ctrl+` toggles. Height persists across reloads. */
 function TerminalPanel() {
   const { useEffect, useRef, useState, useCallback } = React;
   const [open, setOpen] = useState(false);
@@ -249,7 +264,60 @@ function TerminalPanel() {
   const [tabs, setTabs] = useState([]);
   const [activeId, setActiveId] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [height, setHeight] = useState(() => {
+    try {
+      const saved = Number(localStorage.getItem(HEIGHT_KEY));
+      if (Number.isFinite(saved) && saved >= MIN_HEIGHT) return saved;
+    } catch { /* storage unavailable */ }
+    return Math.round(window.innerHeight * 0.36);
+  });
+  const heightRef = useRef(height);
+  heightRef.current = height;
   const bootOnce = useRef(false);
+  const rootRef = useRef(null);
+  /** conversation-column geometry: the panel never covers the side rails */
+  const [geo, setGeo] = useState({ left: 0, width: window.innerWidth });
+
+  /* The terminal bar/panel is pinned to the viewport bottom; the composer card
+   * (the nearest ancestor holding the textarea) gets margin-bottom equal to the
+   * panel's rendered height, so the input dialog ALWAYS sits above the terminal
+   * - collapsed bar (34px) and expanded panel alike. */
+  const { useLayoutEffect } = React;
+  useLayoutEffect(() => {
+    const rootEl = rootRef.current;
+    if (rootEl === null) return;
+    const host = () => rootEl.closest("[data-conversation-scroll]") ?? rootEl.parentElement;
+    const findComposer = () => {
+      let el = rootEl.parentElement;
+      while (el !== null && el !== document.body) {
+        if (el.querySelector("textarea") !== null) return el;
+        el = el.parentElement;
+      }
+      return null;
+    };
+    let card = null;
+    const measure = () => {
+      const el = host();
+      if (el !== null) {
+        const r = el.getBoundingClientRect();
+        setGeo({ left: r.left, width: r.width });
+      }
+      const h = Math.round(rootEl.getBoundingClientRect().height);
+      if (card !== null) card.style.marginBottom = h > 0 ? h + "px" : "";
+    };
+    card = findComposer();
+    const el = host();
+    const ro = new ResizeObserver(measure);
+    if (el !== null) ro.observe(el);
+    ro.observe(rootEl);
+    window.addEventListener("resize", measure);
+    measure();
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", measure);
+      if (card !== null) card.style.marginBottom = "";
+    };
+  }, []);
 
   const active = tabs.find((t) => t.id === activeId) ?? null;
 
@@ -277,6 +345,18 @@ function TerminalPanel() {
       }
     })();
   }, [open]);
+
+  /* Ctrl+` toggles the panel (Cmd+` is taken by the OS on macOS) */
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey && e.code === "Backquote") {
+        e.preventDefault();
+        setOpen((v) => !v);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   const onExit = useCallback((id) => {
     setTabs((cur) => cur.map((t) => (t.id === id ? { ...t, exited: true } : t)));
@@ -312,7 +392,7 @@ function TerminalPanel() {
     await del("/sessions/" + id);
   }, []);
 
-  /* header ⟳: restart the active tab in place (keep strip position) */
+  /* header refresh: restart the active tab in place (keep strip position) */
   const restartActive = useCallback(async () => {
     if (active === null) return;
     setBusy(true);
@@ -328,6 +408,31 @@ function TerminalPanel() {
     }
   }, [active]);
 
+  /* drag the resize grip: grow the panel upward */
+  const startResize = useCallback((e) => {
+    e.preventDefault();
+    const startY = e.clientY;
+    const startH = heightRef.current;
+    const maxH = Math.round(window.innerHeight * 0.78);
+    const move = (ev) => {
+      const h = Math.min(maxH, Math.max(MIN_HEIGHT, startH + (startY - ev.clientY)));
+      setHeight(Math.round(h));
+    };
+    const up = () => {
+      document.body.classList.remove("dshTermResizing");
+      document.removeEventListener("pointermove", move);
+      document.removeEventListener("pointerup", up);
+      try {
+        localStorage.setItem(HEIGHT_KEY, String(heightRef.current));
+      } catch { /* storage unavailable */ }
+    };
+    document.body.classList.add("dshTermResizing");
+    document.addEventListener("pointermove", move);
+    document.addEventListener("pointerup", up);
+  }, []);
+
+  const toggle = useCallback(() => setOpen((v) => !v), []);
+
   const stateLabel = busy
     ? "启动中…"
     : active === null
@@ -336,47 +441,50 @@ function TerminalPanel() {
 
   return React.createElement(
     "div",
-    { className: "dshTermDock" },
+    { className: "dshTermRoot", ref: rootRef, style: { left: geo.left + "px", width: geo.width + "px" } },
     React.createElement(
       "div",
-      { className: "dshTermCard" },
-      React.createElement(
-        "div",
-        {
-          className: "dshTermHeader",
-          role: "button",
-          tabIndex: 0,
-          "aria-expanded": open,
-          onClick: () => setOpen((v) => !v),
-          onKeyDown: (e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              setOpen((v) => !v);
-            }
-          },
+      {
+        className: "dshTermBar",
+        role: "button",
+        tabIndex: 0,
+        "aria-expanded": open,
+        "aria-controls": "dshTermPanel",
+        title: "终端面板（Ctrl+` 切换）",
+        onClick: toggle,
+        onKeyDown: (e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            toggle();
+          }
         },
-        React.createElement("span", { className: "dshTermLead", "aria-hidden": true }, TerminalGlyph14()),
-        React.createElement("span", { className: "dshTermTitle" }, "终端" + (tabs.length > 1 ? " · " + tabs.length : "")),
-        React.createElement("span", { className: "dshTermState" }, stateLabel),
-        React.createElement(
-          "span",
-          { className: "dshTermActions", onClick: (e) => e.stopPropagation() },
-          active !== null && !active.exited
-            ? React.createElement(
-                "button",
-                { className: "dshTermAction", title: "重启当前会话", disabled: busy, onClick: restartActive },
-                Refresh14(),
-              )
-            : null,
-        ),
-        React.createElement(
-          "span",
-          { className: "dshTermChevron", "aria-hidden": true },
-          open ? ChevronDown14() : ChevronRight14(),
-        ),
+      },
+      React.createElement("span", { className: "dshTermBarLead", "aria-hidden": true }, TerminalGlyph14()),
+      React.createElement("span", { className: "dshTermBarTitle" }, "终端" + (tabs.length > 1 ? " · " + tabs.length : "")),
+      React.createElement("span", { className: "dshTermBarState" }, stateLabel),
+      React.createElement(
+        "span",
+        { className: "dshTermBarActions", onClick: (e) => e.stopPropagation() },
+        active !== null && !active.exited
+          ? React.createElement(
+              "button",
+              { className: "dshTermBarAction", title: "重启当前会话", "aria-label": "重启当前会话", disabled: busy, onClick: restartActive },
+              Refresh14(),
+            )
+          : null,
       ),
-      open
-        ? React.createElement(
+      React.createElement("span", { className: "dshTermBarChevron", "aria-hidden": true }, open ? ChevronDown14() : ChevronUp14()),
+    ),
+    open
+      ? React.createElement(
+          "div",
+          { className: "dshTermPanel", id: "dshTermPanel", style: { height: height + "px" } },
+          React.createElement("div", {
+            className: "dshTermResize",
+            title: "拖动调整高度",
+            onPointerDown: startResize,
+          }),
+          React.createElement(
             "div",
             { className: "dshTermTabs", role: "tablist" },
             ...tabs.map((t) =>
@@ -418,10 +526,18 @@ function TerminalPanel() {
               },
               Plus12(),
             ),
-          )
-        : null,
-      open
-        ? React.createElement(
+            React.createElement(
+              "button",
+              {
+                className: "dshTermCollapse",
+                title: "收起面板（Ctrl+`）",
+                "aria-label": "收起面板",
+                onClick: toggle,
+              },
+              ChevronDown14(),
+            ),
+          ),
+          React.createElement(
             "div",
             { className: "dshTermBody" },
             ...tabs.map((t) =>
@@ -436,7 +552,7 @@ function TerminalPanel() {
               ? React.createElement(
                   "div",
                   { className: "dshTermEmpty" },
-                  "没有终端会话",
+                  React.createElement("span", null, "没有终端会话"),
                   React.createElement(
                     "button",
                     { className: "dshTermEmptyBtn", onClick: newTab },
@@ -445,9 +561,9 @@ function TerminalPanel() {
                   ),
                 )
               : null,
-          )
-        : null,
-    ),
+          ),
+        )
+      : null,
   );
 }
 
