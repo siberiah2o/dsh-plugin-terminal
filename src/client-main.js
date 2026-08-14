@@ -30,7 +30,7 @@ if (typeof document !== "undefined" && document.getElementById(XTERM_CSS_TAG) ==
 
 /* Codex-style bottom panel skin (DSH design tokens; terminal surface dark). */
 const STYLE_TAG = "dsh-plugin-terminal-styles";
-const PANEL_CSS = ".dshTermRoot{position:fixed;bottom:0;z-index:50;font-family:Inter,var(--dsw-font-family)}\n.dshTermBar{box-sizing:border-box;width:100%;height:34px;display:flex;align-items:center;gap:10px;padding:0 14px;background:var(--dsw-specific-tip);border-top:1px solid var(--dsw-alias-border-l1);cursor:pointer;color:var(--dsw-alias-label-primary);text-align:left;user-select:none;-webkit-user-select:none}\n.dshTermBar:focus-visible{outline:2px solid var(--dsw-alias-label-tertiary);outline-offset:-2px}\n.dshTermBarLead{color:var(--dsw-alias-label-tertiary);flex:none;place-items:center;display:grid}\n.dshTermBarTitle{min-width:0;flex:none;font-size:13px;font-weight:500;line-height:24px}\n.dshTermBarState{min-width:0;flex:auto;color:var(--dsw-alias-label-tertiary);font-size:12px;line-height:24px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}\n.dshTermBarActions{flex:none;align-items:center;gap:2px;display:flex}\n.dshTermBarAction{width:28px;height:28px;color:var(--dsw-alias-label-tertiary);cursor:pointer;background:0 0;border:none;border-radius:999px;flex:none;place-items:center;padding:0;display:grid}\n.dshTermBarAction:hover:not(:disabled){background:var(--dsw-alias-interactive-bg-hover)}\n.dshTermBarAction:focus-visible{outline:2px solid var(--dsw-alias-label-tertiary);outline-offset:-2px}\n.dshTermBarAction:disabled{cursor:default;opacity:.45}\n.dshTermBarChevron{width:14px;height:14px;color:var(--dsw-alias-label-tertiary);flex:none;place-items:center;display:grid}\n.dshTermPanel{box-sizing:border-box;width:100%;display:flex;flex-direction:column;background:var(--dsw-specific-tip);border-top:1px solid var(--dsw-alias-border-l1);overflow:hidden;animation:dshTermIn .16s ease-out}\n@keyframes dshTermIn{from{transform:translateY(14px);opacity:.4}to{transform:none;opacity:1}}\n.dshTermResize{flex:none;height:6px;cursor:ns-resize;touch-action:none;position:relative}\n.dshTermResize:after{content:'';position:absolute;left:0;right:0;top:2px;height:2px;border-radius:2px;background:transparent;transition:background .15s}\n.dshTermResize:hover:after{background:var(--dsw-alias-interactive-bg-hover)}\n.dshTermTabs{flex:none;box-sizing:border-box;height:38px;display:flex;align-items:center;gap:2px;padding:0 10px;border-bottom:1px solid var(--dsw-alias-border-l1);overflow-x:auto;scrollbar-width:none}\n.dshTermTabs::-webkit-scrollbar{display:none}\n.dshTermTab{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 6px 0 9px;border-radius:7px;border:none;background:transparent;color:var(--dsw-alias-label-tertiary);font-family:Inter,var(--dsw-font-family);font-size:12px;font-weight:500;cursor:pointer;flex:none;max-width:200px}\n.dshTermTab:hover{background:var(--dsw-alias-interactive-bg-hover)}\n.dshTermTab.isActive{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}\n.dshTermTab:focus-visible{outline:2px solid var(--dsw-alias-label-tertiary);outline-offset:-2px}\n.dshTermTab.isExited{opacity:.5}\n.dshTermTab.isExited .dshTermTabLabel{text-decoration:line-through;text-decoration-thickness:1px}\n.dshTermTabLabel{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}\n.dshTermTabLead{display:grid;place-items:center;flex:none;opacity:.7}\n.dshTermTabClose{width:20px;height:20px;border:none;background:transparent;color:inherit;border-radius:6px;display:grid;place-items:center;cursor:pointer;padding:0;opacity:0;flex:none}\n.dshTermTab:hover .dshTermTabClose,.dshTermTab.isActive .dshTermTabClose{opacity:.65}\n.dshTermTabClose:hover{opacity:1;background:var(--dsw-alias-interactive-bg-hover)}\n.dshTermNew{width:26px;height:26px;flex:none;border:none;background:transparent;color:var(--dsw-alias-label-tertiary);border-radius:7px;display:grid;place-items:center;cursor:pointer;padding:0}\n.dshTermNew:hover:not(:disabled){background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}\n.dshTermNew:focus-visible{outline:2px solid var(--dsw-alias-label-tertiary);outline-offset:-2px}\n.dshTermNew:disabled{cursor:default;opacity:.45}\n.dshTermCollapse{margin-left:auto;flex:none;display:grid;place-items:center;width:26px;height:26px;border:none;background:transparent;color:var(--dsw-alias-label-tertiary);border-radius:7px;cursor:pointer;padding:0}\n.dshTermCollapse:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}\n.dshTermBody{flex:auto;min-height:0;position:relative;background:#1e2128;box-shadow:inset 0 1px 0 var(--dsw-alias-border-l1)}\n.dshTermPane{position:absolute;inset:0;display:none;padding:4px 10px 8px;background:#1e2128}\n.dshTermPane.isActive{display:block}\n.dshTermEmpty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:#8b90a0;font-family:Inter,var(--dsw-font-family);font-size:12px}\n.dshTermEmptyBtn{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 12px;border-radius:8px;border:1px solid var(--dsw-alias-border-l1);background:#2a2e38;color:#e6e8ee;font-family:Inter,var(--dsw-font-family);font-size:12px;font-weight:500;cursor:pointer}\n.dshTermEmptyBtn:hover{background:#343946}\nbody.dshTermResizing{cursor:ns-resize!important;user-select:none!important;-webkit-user-select:none!important}";
+const PANEL_CSS = ".dshTermRoot{position:fixed;bottom:0;z-index:50;font-family:Inter,var(--dsw-font-family)}\n.dshTermBar{box-sizing:border-box;width:100%;height:34px;display:flex;align-items:center;gap:10px;padding:0 14px;background:var(--dsw-specific-tip);border-top:1px solid var(--dsw-alias-border-l1);cursor:pointer;color:var(--dsw-alias-label-primary);text-align:left;user-select:none;-webkit-user-select:none}\n.dshTermBar:focus-visible{outline:2px solid var(--dsw-alias-label-tertiary);outline-offset:-2px}\n.dshTermBarLead{color:var(--dsw-alias-label-tertiary);flex:none;place-items:center;display:grid}\n.dshTermBarTitle{min-width:0;flex:none;font-size:13px;font-weight:500;line-height:24px}\n.dshTermBarState{min-width:0;flex:auto;color:var(--dsw-alias-label-tertiary);font-size:12px;line-height:24px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}\n.dshTermBarActions{flex:none;align-items:center;gap:2px;display:flex}\n.dshTermBarAction{width:28px;height:28px;color:var(--dsw-alias-label-tertiary);cursor:pointer;background:0 0;border:none;border-radius:999px;flex:none;place-items:center;padding:0;display:grid}\n.dshTermBarAction:hover:not(:disabled){background:var(--dsw-alias-interactive-bg-hover)}\n.dshTermBarAction:focus-visible{outline:2px solid var(--dsw-alias-label-tertiary);outline-offset:-2px}\n.dshTermBarAction:disabled{cursor:default;opacity:.45}\n.dshTermBarChevron{width:14px;height:14px;color:var(--dsw-alias-label-tertiary);flex:none;place-items:center;display:grid}\n.dshTermPanel{box-sizing:border-box;width:100%;display:flex;flex-direction:column;background:var(--dsw-specific-tip);border-top:1px solid var(--dsw-alias-border-l1);overflow:hidden;animation:dshTermIn .16s ease-out}\n@keyframes dshTermIn{from{transform:translateY(14px);opacity:.4}to{transform:none;opacity:1}}\n.dshTermResize{flex:none;height:6px;cursor:ns-resize;touch-action:none;position:relative}\n.dshTermResize:after{content:'';position:absolute;left:0;right:0;top:2px;height:2px;border-radius:2px;background:transparent;transition:background .15s}\n.dshTermResize:hover:after{background:var(--dsw-alias-interactive-bg-hover)}\n.dshTermTabs{flex:none;box-sizing:border-box;height:36px;display:flex;align-items:center;gap:2px;padding:0 10px;border-bottom:1px solid var(--dsw-alias-border-l1);background:var(--dsw-specific-tip)}\n.dshTermTabsScroll{flex:1;min-width:0;display:flex;align-items:center;gap:2px;height:100%;overflow-x:auto;scrollbar-width:none}\n.dshTermTabsScroll::-webkit-scrollbar{display:none}\n.dshTermTabsLead{color:var(--dsw-alias-label-tertiary);flex:none;display:grid;place-items:center;margin-right:2px}\n.dshTermTabsState{flex:none;max-width:180px;color:var(--dsw-alias-label-tertiary);font-size:12px;line-height:24px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0 6px}\n.dshTermTab{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 6px 0 9px;border-radius:7px;border:none;background:transparent;color:var(--dsw-alias-label-tertiary);font-family:Inter,var(--dsw-font-family);font-size:12px;font-weight:500;cursor:pointer;flex:none;max-width:200px}\n.dshTermTab:hover{background:var(--dsw-alias-interactive-bg-hover)}\n.dshTermTab.isActive{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}\n.dshTermTab:focus-visible{outline:2px solid var(--dsw-alias-label-tertiary);outline-offset:-2px}\n.dshTermTab.isExited{opacity:.5}\n.dshTermTab.isExited .dshTermTabLabel{text-decoration:line-through;text-decoration-thickness:1px}\n.dshTermTabLabel{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}\n.dshTermTabLead{display:grid;place-items:center;flex:none;opacity:.7}\n.dshTermTabClose{width:20px;height:20px;border:none;background:transparent;color:inherit;border-radius:6px;display:grid;place-items:center;cursor:pointer;padding:0;opacity:0;flex:none}\n.dshTermTab:hover .dshTermTabClose,.dshTermTab.isActive .dshTermTabClose{opacity:.65}\n.dshTermTabClose:hover{opacity:1;background:var(--dsw-alias-interactive-bg-hover)}\n.dshTermNew{width:26px;height:26px;flex:none;border:none;background:transparent;color:var(--dsw-alias-label-tertiary);border-radius:7px;display:grid;place-items:center;cursor:pointer;padding:0}\n.dshTermNew:hover:not(:disabled){background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}\n.dshTermNew:focus-visible{outline:2px solid var(--dsw-alias-label-tertiary);outline-offset:-2px}\n.dshTermNew:disabled{cursor:default;opacity:.45}\n.dshTermCollapse{flex:none;display:grid;place-items:center;width:26px;height:26px;border:none;background:transparent;color:var(--dsw-alias-label-tertiary);border-radius:7px;cursor:pointer;padding:0}\n.dshTermCollapse:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}\n.dshTermBody{flex:auto;min-height:0;position:relative;background:#1e2128;box-shadow:inset 0 1px 0 var(--dsw-alias-border-l1)}\n.dshTermPane{position:absolute;inset:0;display:none;padding:4px 10px 8px;background:#1e2128}\n.dshTermPane.isActive{display:block}\n.dshTermEmpty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:#8b90a0;font-family:Inter,var(--dsw-font-family);font-size:12px}\n.dshTermEmptyBtn{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 12px;border-radius:8px;border:1px solid var(--dsw-alias-border-l1);background:#2a2e38;color:#e6e8ee;font-family:Inter,var(--dsw-font-family);font-size:12px;font-weight:500;cursor:pointer}\n.dshTermEmptyBtn:hover{background:#343946}\nbody.dshTermResizing{cursor:ns-resize!important;user-select:none!important;-webkit-user-select:none!important}";
 if (typeof document !== "undefined" && document.getElementById(STYLE_TAG) === null) {
   const tag = document.createElement("style");
   tag.id = STYLE_TAG;
@@ -164,12 +164,22 @@ function TermPane({ tab, active, onExit }) {
   useEffect(() => {
     const host = hostRef.current;
     if (host === null) return;
+    /* TUI-agent tuned options (codex / claude code):
+     * - unicodeVersion "11": modern CJK/emoji width tables - mixed CN/EN agent
+     *   output lays out correctly instead of overlapping/shifting
+     * - drawBoldTextInBrightColors false: keep real ANSI colors on bold text
+     *   (true swaps e.g. bold red to bright red - Claude Code headers drift)
+     * - scrollback 10000: agent sessions stream lots of tool output
+     * - CJK font fallbacks so Chinese never falls out of the mono stack */
     const term = new Terminal({
       cursorBlink: true,
-      fontFamily: "ui-monospace, SFMono-Regular, 'Cascadia Mono', Consolas, Menlo, monospace",
+      fontFamily:
+        "ui-monospace, SFMono-Regular, 'Cascadia Mono', Consolas, Menlo, 'PingFang SC', 'Noto Sans Mono CJK SC', 'Microsoft YaHei', monospace",
       fontSize: 12.5,
       lineHeight: 1.25,
-      scrollback: 5000,
+      scrollback: 10000,
+      unicodeVersion: "11",
+      drawBoldTextInBrightColors: false,
       theme: TERM_THEME,
     });
     const fit = new FitAddon();
@@ -274,6 +284,8 @@ function TerminalPanel() {
   const heightRef = useRef(height);
   heightRef.current = height;
   const bootOnce = useRef(false);
+  const [bootReady, setBootReady] = useState(false);
+  const openHandled = useRef(false);
   const rootRef = useRef(null);
   /** conversation-column geometry: the panel never covers the side rails */
   const [geo, setGeo] = useState({ left: 0, width: window.innerWidth });
@@ -321,30 +333,48 @@ function TerminalPanel() {
 
   const active = tabs.find((t) => t.id === activeId) ?? null;
 
-  /* attach live sessions as tabs on first open (refresh restore) */
+  /* Restore live sessions on EVERY mount (page load, workspace switch):
+   * the panel is injected per-conversation, so switching workspaces remounts
+   * this component and tabs/open were lost - the bar showed "no session" even
+   * though the host still owns the PTYs. Restore here (attach only, NEVER
+   * create - no orphan PTYs from a mount nobody opened); creation happens in
+   * the open effect below. */
   useEffect(() => {
-    if (!open || bootOnce.current) return;
+    if (bootOnce.current) return;
     bootOnce.current = true;
     (async () => {
       setBusy(true);
       try {
         const list = await api("/sessions");
-        const live = (list.sessions ?? []).filter((x) => !x.exited);
-        if (live.length === 0) {
-          const s = await post("/sessions", {});
-          setTabs([{ id: s.id, title: s.title, shell: s.shell, exited: false }]);
-          setActiveId(s.id);
-        } else {
-          setTabs(live.map((x) => ({ id: x.id, title: x.title, shell: x.shell, exited: false })));
-          setActiveId(live[live.length - 1].id);
+        /* Restore ALL sessions the host still knows: live PTYs AND exited
+         * history (persisted across dsh web restarts). Exited tabs replay
+         * their scrollback over the WS and show as restartable. */
+        const all = list.sessions ?? [];
+        if (all.length > 0) {
+          setTabs(all.map((x) => ({ id: x.id, title: x.title, shell: x.shell, exited: !!x.exited })));
+          const lastLive = [...all].reverse().find((x) => !x.exited);
+          setActiveId((lastLive ?? all[all.length - 1]).id);
         }
       } catch (err) {
-        console.error("[dsh-plugin-terminal] boot failed:", err);
+        console.error("[dsh-plugin-terminal] restore failed:", err);
       } finally {
         setBusy(false);
+        setBootReady(true);
       }
     })();
-  }, [open]);
+  }, []);
+
+  /* first open with no restored tabs: create one session. openHandled guards
+   * so closing the last tab does NOT auto-create - only a fresh open does. */
+  useEffect(() => {
+    if (!open) {
+      openHandled.current = false;
+      return;
+    }
+    if (!bootReady || tabs.length > 0 || openHandled.current) return;
+    openHandled.current = true;
+    newTab();
+  }, [open, bootReady, tabs.length]);
 
   /* Ctrl+` toggles the panel (Cmd+` is taken by the OS on macOS) */
   useEffect(() => {
@@ -392,14 +422,18 @@ function TerminalPanel() {
     await del("/sessions/" + id);
   }, []);
 
-  /* header refresh: restart the active tab in place (keep strip position) */
+  /* header refresh: restart the active tab IN PLACE via the host restart
+   * route, which respawns the shell and INHERITS the old scrollback - the
+   * terminal keeps its history AND its tab name (server-side session counter
+   * increments on every spawn, so using the fresh title would look like
+   * "zsh 1 -> zsh 2 -> zsh 3", i.e. as if a new terminal was created
+   * instead of restarted). Only the + button appends a genuinely new tab. */
   const restartActive = useCallback(async () => {
     if (active === null) return;
     setBusy(true);
     try {
-      await del("/sessions/" + active.id);
-      const s = await post("/sessions", {});
-      setTabs((cur) => cur.map((t) => (t.id === active.id ? { id: s.id, title: s.title, shell: s.shell, exited: false } : t)));
+      const s = await post("/sessions/" + active.id + "/restart", {});
+      setTabs((cur) => cur.map((t) => (t.id === active.id ? { id: s.id, title: active.title, shell: s.shell, exited: false } : t)));
       setActiveId(s.id);
     } catch (err) {
       console.error("[dsh-plugin-terminal] restart failed:", err);
@@ -442,39 +476,6 @@ function TerminalPanel() {
   return React.createElement(
     "div",
     { className: "dshTermRoot", ref: rootRef, style: { left: geo.left + "px", width: geo.width + "px" } },
-    React.createElement(
-      "div",
-      {
-        className: "dshTermBar",
-        role: "button",
-        tabIndex: 0,
-        "aria-expanded": open,
-        "aria-controls": "dshTermPanel",
-        title: "终端面板（Ctrl+` 切换）",
-        onClick: toggle,
-        onKeyDown: (e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            toggle();
-          }
-        },
-      },
-      React.createElement("span", { className: "dshTermBarLead", "aria-hidden": true }, TerminalGlyph14()),
-      React.createElement("span", { className: "dshTermBarTitle" }, "终端" + (tabs.length > 1 ? " · " + tabs.length : "")),
-      React.createElement("span", { className: "dshTermBarState" }, stateLabel),
-      React.createElement(
-        "span",
-        { className: "dshTermBarActions", onClick: (e) => e.stopPropagation() },
-        active !== null && !active.exited
-          ? React.createElement(
-              "button",
-              { className: "dshTermBarAction", title: "重启当前会话", "aria-label": "重启当前会话", disabled: busy, onClick: restartActive },
-              Refresh14(),
-            )
-          : null,
-      ),
-      React.createElement("span", { className: "dshTermBarChevron", "aria-hidden": true }, open ? ChevronDown14() : ChevronUp14()),
-    ),
     open
       ? React.createElement(
           "div",
@@ -484,34 +485,40 @@ function TerminalPanel() {
             title: "拖动调整高度",
             onPointerDown: startResize,
           }),
+          /* single merged header row: lead + scrollable tabs + new + state + restart + collapse */
           React.createElement(
             "div",
-            { className: "dshTermTabs", role: "tablist" },
-            ...tabs.map((t) =>
-              React.createElement(
-                "button",
-                {
-                  key: t.id,
-                  role: "tab",
-                  "aria-selected": t.id === activeId,
-                  className: "dshTermTab" + (t.id === activeId ? " isActive" : "") + (t.exited ? " isExited" : ""),
-                  title: t.exited ? tabLabel(t) + " (已退出)" : tabLabel(t),
-                  onClick: () => setActiveId(t.id),
-                },
-                React.createElement("span", { className: "dshTermTabLead", "aria-hidden": true }, TerminalGlyph12()),
-                React.createElement("span", { className: "dshTermTabLabel" }, tabLabel(t)),
+            { className: "dshTermTabs" },
+            React.createElement("span", { className: "dshTermTabsLead", "aria-hidden": true }, TerminalGlyph14()),
+            React.createElement(
+              "div",
+              { className: "dshTermTabsScroll", role: "tablist" },
+              ...tabs.map((t) =>
                 React.createElement(
-                  "span",
+                  "button",
                   {
-                    className: "dshTermTabClose",
-                    role: "button",
-                    title: "关闭 " + tabLabel(t),
-                    onClick: (e) => {
-                      e.stopPropagation();
-                      closeTab(t.id);
-                    },
+                    key: t.id,
+                    role: "tab",
+                    "aria-selected": t.id === activeId,
+                    className: "dshTermTab" + (t.id === activeId ? " isActive" : "") + (t.exited ? " isExited" : ""),
+                    title: t.exited ? tabLabel(t) + " (已退出)" : tabLabel(t),
+                    onClick: () => setActiveId(t.id),
                   },
-                  Close14(),
+                  React.createElement("span", { className: "dshTermTabLead", "aria-hidden": true }, TerminalGlyph12()),
+                  React.createElement("span", { className: "dshTermTabLabel" }, tabLabel(t)),
+                  React.createElement(
+                    "span",
+                    {
+                      className: "dshTermTabClose",
+                      role: "button",
+                      title: "关闭 " + tabLabel(t),
+                      onClick: (e) => {
+                        e.stopPropagation();
+                        closeTab(t.id);
+                      },
+                    },
+                    Close14(),
+                  ),
                 ),
               ),
             ),
@@ -526,6 +533,15 @@ function TerminalPanel() {
               },
               Plus12(),
             ),
+            React.createElement("span", { className: "dshTermTabsState", title: stateLabel }, stateLabel),
+            /* restart must be reachable for exited history tabs too */
+            active !== null
+              ? React.createElement(
+                  "button",
+                  { className: "dshTermBarAction", title: active.exited ? "重启进程（保留标签位）" : "重启当前会话", "aria-label": "重启当前会话", disabled: busy, onClick: restartActive },
+                  Refresh14(),
+                )
+              : null,
             React.createElement(
               "button",
               {
@@ -563,8 +579,39 @@ function TerminalPanel() {
               : null,
           ),
         )
-      : null,
+      : React.createElement(
+          "div",
+          {
+            className: "dshTermBar",
+            role: "button",
+            tabIndex: 0,
+            "aria-expanded": open,
+            "aria-controls": "dshTermPanel",
+            title: "终端面板（Ctrl+` 切换）",
+            onClick: toggle,
+            onKeyDown: (e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                toggle();
+              }
+            },
+          },
+          React.createElement("span", { className: "dshTermBarLead", "aria-hidden": true }, TerminalGlyph14()),
+          React.createElement("span", { className: "dshTermBarTitle" }, "终端" + (tabs.length > 1 ? " · " + tabs.length : "")),
+          React.createElement("span", { className: "dshTermBarState" }, stateLabel),
+          React.createElement(
+            "span",
+            { className: "dshTermBarActions", onClick: (e) => e.stopPropagation() },
+            active !== null
+              ? React.createElement(
+                  "button",
+                  { className: "dshTermBarAction", title: active.exited ? "重启进程（保留标签位）" : "重启当前会话", "aria-label": "重启当前会话", disabled: busy, onClick: restartActive },
+                  Refresh14(),
+                )
+              : null,
+          ),
+          React.createElement("span", { className: "dshTermBarChevron", "aria-hidden": true }, ChevronUp14()),
+        ),
   );
 }
-
 export { TerminalPanel };
