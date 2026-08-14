@@ -1,0 +1,8 @@
+# Web 覆盖层（overlay）：把本地插件插入运行中的 profile。
+# 用法：先停掉当前 dsh web，然后
+#   dsh web --patch E:/gogame/dsh-plugin-starter/cordis.patch.yml
+# 启动期终端应打印 [my-first-plugin] plugin loaded!
+# 注意：插件路径必须是绝对路径。
+- insert:
+  - id: my-first-plugin
+    name: 'E:/gogame/dsh-plugin-starter/my-first-plugin.ts'
