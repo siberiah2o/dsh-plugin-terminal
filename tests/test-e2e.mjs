@@ -1,5 +1,5 @@
 
-const B = "http://127.0.0.1:3081";
+const B = process.env.TP_BASE ?? "http://127.0.0.1:3081";
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 (async () => {
   const created = await (await fetch(B + "/terminal-panel/sessions", { method: "POST", headers: {"content-type":"application/json"}, body: "{}" })).json();
