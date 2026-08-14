@@ -23,7 +23,7 @@ if (typeof document !== "undefined" && document.getElementById(XTERM_CSS_TAG) ==
 
 /* panel skin - design tokens identical to QueueDock.module.css */
 const STYLE_TAG = "dsh-plugin-terminal-styles";
-const PANEL_CSS = ".dshTermDock{box-sizing:border-box;width:calc(100% - var(--dsh-composer-side-clearance) - var(--dsh-composer-side-clearance) - var(--dsh-composer-dock-inset) - var(--dsh-composer-dock-inset));max-width:calc(var(--dsh-composer-card-max-width) - var(--dsh-composer-dock-inset) - var(--dsh-composer-dock-inset));margin:0 auto calc(0px - var(--dsh-composer-stack-gap) - 3px);padding:0 var(--dsh-composer-dock-inset);flex:none}\n.dshTermCard{background:var(--dsw-specific-tip);--dsh-scrollbar-thumb:var(--dsw-alias-scrollbar-bg-l2);--dsh-scrollbar-thumb-hover:var(--dsw-alias-scrollbar-hover-l2);border-radius:12px 12px 0 0;width:100%;padding:2px 0 0;position:relative;overflow:hidden}\n.dshTermCard:after{border:1px solid var(--dsw-alias-border-l1);border-radius:inherit;content:'';pointer-events:none;border-bottom:none;position:absolute;inset:0}\n.dshTermHeader{box-sizing:border-box;width:100%;height:36px;color:var(--dsw-alias-label-primary);text-align:left;cursor:pointer;background:0 0;border:none;align-items:center;gap:10px;padding:4px 12px;display:flex}\n.dshTermHeader:focus-visible{outline:2px solid var(--dsw-alias-label-tertiary);outline-offset:-2px}\n.dshTermLead{color:var(--dsw-alias-label-tertiary);flex:none;place-items:center;display:grid}\n.dshTermTitle{min-width:0;font-family:Inter,var(--dsw-font-family);flex:none;font-size:13px;font-weight:500;line-height:24px}\n.dshTermState{min-width:0;flex:auto;color:var(--dsw-alias-label-tertiary);font-family:Inter,var(--dsw-font-family);font-size:12px;line-height:24px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}\n.dshTermActions{flex:none;align-items:center;gap:2px;display:flex;margin:0 2px 0 -6px}\n.dshTermAction{width:28px;height:28px;color:var(--dsw-alias-label-tertiary);cursor:pointer;background:0 0;border:none;border-radius:999px;flex:none;place-items:center;padding:0;display:grid}\n.dshTermAction:hover:not(:disabled){background:var(--dsw-alias-interactive-bg-hover)}\n.dshTermAction:focus-visible{outline:2px solid var(--dsw-alias-label-tertiary);outline-offset:-2px}\n.dshTermAction:disabled{cursor:default;opacity:.45}\n.dshTermChevron{width:14px;height:14px;color:var(--dsw-alias-label-tertiary);flex:none;place-items:center;display:grid}\n.dshTermTabs{display:flex;align-items:center;gap:2px;padding:0 10px 6px;overflow-x:auto;flex:none;scrollbar-width:none}\n.dshTermTab{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 6px 0 10px;border-radius:8px;border:none;background:transparent;color:var(--dsw-alias-label-tertiary);font-family:Inter,var(--dsw-font-family);font-size:12px;font-weight:500;cursor:pointer;flex:none;max-width:180px}\n.dshTermTab:hover{background:var(--dsw-alias-interactive-bg-hover)}\n.dshTermTab.isActive{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}\n.dshTermTab.isActive:focus-visible,.dshTermTab:focus-visible{outline:2px solid var(--dsw-alias-label-tertiary);outline-offset:-2px}\n.dshTermTab.isExited{opacity:.5}\n.dshTermTab.isExited .dshTermTabLabel{text-decoration:line-through;text-decoration-thickness:1px}\n.dshTermTabLabel{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}\n.dshTermTabLead{display:grid;place-items:center;flex:none;opacity:.7}\n.dshTermTabClose{width:20px;height:20px;border:none;background:transparent;color:inherit;border-radius:6px;display:grid;place-items:center;cursor:pointer;padding:0;opacity:0;flex:none}\n.dshTermTab:hover .dshTermTabClose,.dshTermTab.isActive .dshTermTabClose{opacity:.65}\n.dshTermTabClose:hover{opacity:1;background:var(--dsw-alias-interactive-bg-hover)}\n.dshTermNew{width:28px;height:28px;flex:none;border:none;background:transparent;color:var(--dsw-alias-label-tertiary);border-radius:999px;display:grid;place-items:center;cursor:pointer;padding:0}\n.dshTermNew:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}\n.dshTermNew:focus-visible{outline:2px solid var(--dsw-alias-label-tertiary);outline-offset:-2px}\n.dshTermBody{position:relative;height:clamp(180px,32vh,420px);box-shadow:inset 0 1px 0 var(--dsw-alias-border-l1)}\n.dshTermPane{position:absolute;inset:0;display:none;padding:4px 10px 8px}\n.dshTermPane.isActive{display:block}\n.dshTermEmpty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:10px;color:var(--dsw-alias-label-tertiary);font-family:Inter,var(--dsw-font-family);font-size:12px}\n.dshTermEmptyBtn{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 12px;border-radius:8px;border:none;background:transparent;color:var(--dsw-alias-label-primary);font-family:Inter,var(--dsw-font-family);font-size:12px;font-weight:500;cursor:pointer}\n.dshTermEmptyBtn:hover{background:var(--dsw-alias-interactive-bg-hover)}";
+const PANEL_CSS = ".dshTermDock{box-sizing:border-box;width:calc(100% - var(--dsh-composer-side-clearance) - var(--dsh-composer-side-clearance) - var(--dsh-composer-dock-inset) - var(--dsh-composer-dock-inset));max-width:calc(var(--dsh-composer-card-max-width) - var(--dsh-composer-dock-inset) - var(--dsh-composer-dock-inset));margin:0 auto calc(0px - var(--dsh-composer-stack-gap) - 3px);padding:0 var(--dsh-composer-dock-inset);flex:none}\n.dshTermCard{background:var(--dsw-specific-tip);--dsh-scrollbar-thumb:var(--dsw-alias-scrollbar-bg-l2);--dsh-scrollbar-thumb-hover:var(--dsw-alias-scrollbar-hover-l2);border-radius:12px 12px 0 0;width:100%;padding:2px 0 0;position:relative;overflow:hidden}\n.dshTermCard:after{border:1px solid var(--dsw-alias-border-l1);border-radius:inherit;content:'';pointer-events:none;border-bottom:none;position:absolute;inset:0}\n.dshTermHeader{box-sizing:border-box;width:100%;height:36px;color:var(--dsw-alias-label-primary);text-align:left;cursor:pointer;background:0 0;border:none;align-items:center;gap:10px;padding:4px 12px;display:flex}\n.dshTermHeader:focus-visible{outline:2px solid var(--dsw-alias-label-tertiary);outline-offset:-2px}\n.dshTermLead{color:var(--dsw-alias-label-tertiary);flex:none;place-items:center;display:grid}\n.dshTermTitle{min-width:0;font-family:Inter,var(--dsw-font-family);flex:none;font-size:13px;font-weight:500;line-height:24px}\n.dshTermState{min-width:0;flex:auto;color:var(--dsw-alias-label-tertiary);font-family:Inter,var(--dsw-font-family);font-size:12px;line-height:24px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}\n.dshTermActions{flex:none;align-items:center;gap:2px;display:flex;margin:0 2px 0 -6px}\n.dshTermAction{width:28px;height:28px;color:var(--dsw-alias-label-tertiary);cursor:pointer;background:0 0;border:none;border-radius:999px;flex:none;place-items:center;padding:0;display:grid}\n.dshTermAction:hover:not(:disabled){background:var(--dsw-alias-interactive-bg-hover)}\n.dshTermAction:focus-visible{outline:2px solid var(--dsw-alias-label-tertiary);outline-offset:-2px}\n.dshTermAction:disabled{cursor:default;opacity:.45}\n.dshTermChevron{width:14px;height:14px;color:var(--dsw-alias-label-tertiary);flex:none;place-items:center;display:grid}\n.dshTermTabs{display:flex;align-items:center;gap:2px;padding:0 10px 6px;overflow-x:auto;flex:none;scrollbar-width:none}\n.dshTermTab{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 6px 0 10px;border-radius:8px;border:none;background:transparent;color:var(--dsw-alias-label-tertiary);font-family:Inter,var(--dsw-font-family);font-size:12px;font-weight:500;cursor:pointer;flex:none;max-width:180px}\n.dshTermTab:hover{background:var(--dsw-alias-interactive-bg-hover)}\n.dshTermTab.isActive{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}\n.dshTermTab.isActive:focus-visible,.dshTermTab:focus-visible{outline:2px solid var(--dsw-alias-label-tertiary);outline-offset:-2px}\n.dshTermTab.isExited{opacity:.5}\n.dshTermTab.isExited .dshTermTabLabel{text-decoration:line-through;text-decoration-thickness:1px}\n.dshTermTabLabel{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}\n.dshTermTabLead{display:grid;place-items:center;flex:none;opacity:.7}\n.dshTermTabClose{width:20px;height:20px;border:none;background:transparent;color:inherit;border-radius:6px;display:grid;place-items:center;cursor:pointer;padding:0;opacity:0;flex:none}\n.dshTermTab:hover .dshTermTabClose,.dshTermTab.isActive .dshTermTabClose{opacity:.65}\n.dshTermTabClose:hover{opacity:1;background:var(--dsw-alias-interactive-bg-hover)}\n.dshTermNew{width:28px;height:28px;flex:none;border:none;background:transparent;color:var(--dsw-alias-label-tertiary);border-radius:999px;display:grid;place-items:center;cursor:pointer;padding:0}\n.dshTermNew:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}\n.dshTermNew:focus-visible{outline:2px solid var(--dsw-alias-label-tertiary);outline-offset:-2px}\n.dshTermBody{position:relative;height:clamp(180px,32vh,420px);background:#1e2128;box-shadow:inset 0 1px 0 var(--dsw-alias-border-l1)}\n.dshTermPane{position:absolute;inset:0;display:none;padding:4px 10px 8px;background:#1e2128}\n.dshTermPane.isActive{display:block}\n.dshTermEmpty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:10px;color:#8b90a0;font-family:Inter,var(--dsw-font-family);font-size:12px}\n.dshTermEmptyBtn{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 12px;border-radius:8px;border:none;background:transparent;color:#e6e8ee;font-family:Inter,var(--dsw-font-family);font-size:12px;font-weight:500;cursor:pointer}\n.dshTermEmptyBtn:hover{background:#2a2e38}";
 if (typeof document !== "undefined" && document.getElementById(STYLE_TAG) === null) {
   const tag = document.createElement("style");
   tag.id = STYLE_TAG;
@@ -31,26 +31,36 @@ if (typeof document !== "undefined" && document.getElementById(STYLE_TAG) === nu
   document.head.appendChild(tag);
 }
 
-/* theme sampling: match the DSH card in dark & light */
-function sampleTheme() {
-  const probe = document.createElement("div");
-  probe.style.cssText = "position:absolute;visibility:hidden;background:var(--dsw-specific-tip)";
-  document.body.appendChild(probe);
-  const bg = getComputedStyle(probe).backgroundColor;
-  probe.remove();
-  const nums = (bg.match(/[\d.]+/g) ?? []).map(Number);
-  let dark = true;
-  if (nums.length >= 3 && (nums.length < 4 || nums[3] !== 0)) {
-    dark = (0.2126 * nums[0] + 0.7152 * nums[1] + 0.0722 * nums[2]) / 255 < 0.5;
-  }
-  return {
-    background: "#00000000",
-    foreground: dark ? "#d7dae0" : "#24292f",
-    cursor: dark ? "#d7dae0" : "#24292f",
-    cursorAccent: dark ? "#1b1d22" : "#ffffff",
-    selectionBackground: dark ? "#3b4252aa" : "#c9d4e3aa",
-  };
-}
+/* The terminal surface is ALWAYS dark with the Windows Terminal "Campbell"
+ * palette. Shell output colors (ConPTY indices, ls/git/PSReadLine) are
+ * designed for dark backgrounds - e.g. ConPTY emits fg-7 (#e5e5e5) for the
+ * prompt, which is invisible on a light card. A dark inset surface (like a
+ * code block in chat) keeps every ANSI color readable in both DSH themes. */
+const TERM_THEME = {
+  foreground: "#d7dae0",
+  background: "#1e2128",
+  cursor: "#d7dae0",
+  cursorAccent: "#1e2128",
+  selectionBackground: "#3b4252aa",
+  /* Campbell hues, brightened so every slot clears ~4:1 on #1e2128
+   * (stock Campbell blue/red/magenta measure 2.0-2.7:1 - unreadable). */
+  black: "#0c0c0c",
+  red: "#e74856",
+  green: "#16c60c",
+  yellow: "#c19c00",
+  blue: "#3b78ff",
+  magenta: "#d64fa8",
+  cyan: "#3a96dd",
+  white: "#cccccc",
+  brightBlack: "#8a8a8a",
+  brightRed: "#ff6b6b",
+  brightGreen: "#2ee62e",
+  brightYellow: "#f9f1a5",
+  brightBlue: "#7aa2ff",
+  brightMagenta: "#f27fd8",
+  brightCyan: "#61d6d6",
+  brightWhite: "#f2f2f2",
+};
 
 /* host API */
 async function api(path, opts) {
@@ -146,8 +156,7 @@ function TermPane({ tab, active, onExit }) {
       fontSize: 12.5,
       lineHeight: 1.25,
       scrollback: 5000,
-      allowTransparency: true,
-      theme: sampleTheme(),
+      theme: TERM_THEME,
     });
     const fit = new FitAddon();
     term.loadAddon(fit);
@@ -189,16 +198,6 @@ function TermPane({ tab, active, onExit }) {
     };
   }, [tab.id]);
 
-  /* re-theme when DSH switches dark/light */
-  useEffect(() => {
-    const apply = () => {
-      if (termRef.current !== null) termRef.current.options.theme = sampleTheme();
-    };
-    apply();
-    const mo = new MutationObserver(apply);
-    mo.observe(document.documentElement, { attributes: true, attributeFilter: ["class", "data-theme", "style"] });
-    return () => mo.disconnect();
-  }, [tab.id]);
 
   /* activate: fit (dimensions may have settled) + focus */
   useEffect(() => {
