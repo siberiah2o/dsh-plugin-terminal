@@ -267,9 +267,33 @@ function TermPane({ tab, active, onExit }) {
 
 /* Codex-style bottom terminal panel: collapsed 34px bar, expanded full-width
  * draggable panel. Ctrl+` toggles. Height persists across reloads. */
-function TerminalPanel() {
+function TerminalPanel(props) {
   const { useEffect, useRef, useState, useCallback } = React;
+  const { sessionId, useSessions, useWorkspaces } = props ?? {};
   const [open, setOpen] = useState(false);
+  /** cwd of the DSH session this panel is mounted in. Prefer the workspace
+   *  membership (what the user sees on screen - the workspace the session
+   *  lives in), then the session summary cwd, then the parent session's cwd
+   *  (subagent rows carry no cwd of their own). New tabs are spawned there
+   *  instead of the server's process.cwd(), so a server restart no longer
+   *  strands new terminals in the launch directory. The owning sessionId is
+   *  also sent with every create request so the host can fall back to the
+   *  workspace registry when all client-side lookups come up empty. */
+  const workspacePath = useWorkspaces((s) =>
+    Array.isArray(s?.items)
+      ? s.items.find((w) => Array.isArray(w?.sessionIds) && w.sessionIds.includes(sessionId))?.path
+      : undefined,
+  );
+  const sessionCwd = useSessions((s) => {
+    const row = s?.byId?.[sessionId];
+    if (typeof row?.cwd === 'string' && row.cwd.length > 0) return row.cwd;
+    if (typeof row?.parentId === 'string') {
+      const parent = s.byId[row.parentId];
+      if (typeof parent?.cwd === 'string' && parent.cwd.length > 0) return parent.cwd;
+    }
+    return undefined;
+  });
+  const workspaceCwd = typeof workspacePath === 'string' && workspacePath.length > 0 ? workspacePath : sessionCwd;
   /** tabs: [{id, title, shell, exited}] in strip order */
   const [tabs, setTabs] = useState([]);
   const [activeId, setActiveId] = useState(null);
@@ -351,7 +375,13 @@ function TerminalPanel() {
          * their scrollback over the WS and show as restartable. */
         const all = list.sessions ?? [];
         if (all.length > 0) {
-          setTabs(all.map((x) => ({ id: x.id, title: x.title, shell: x.shell, exited: !!x.exited })));
+          setTabs(all.map((x) => ({
+            id: x.id,
+            title: x.title,
+            shell: x.shell,
+            cwd: typeof x.cwd === 'string' ? x.cwd : null,
+            exited: !!x.exited,
+          })));
           const lastLive = [...all].reverse().find((x) => !x.exited);
           setActiveId((lastLive ?? all[all.length - 1]).id);
         }
@@ -392,19 +422,22 @@ function TerminalPanel() {
     setTabs((cur) => cur.map((t) => (t.id === id ? { ...t, exited: true } : t)));
   }, []);
 
-  /* + button: new session in a new tab */
+  /* + button: new session in a new tab, spawned in the current workspace.
+   *  sessionId rides along so the host can resolve the workspace path through
+   *  the DSH workspace registry when the client-side cwd lookup failed. */
   const newTab = useCallback(async () => {
     setBusy(true);
     try {
-      const s = await post("/sessions", {});
-      setTabs((cur) => [...cur, { id: s.id, title: s.title, shell: s.shell, exited: false }]);
+      const cwd = workspaceCwd ?? active?.cwd;
+      const s = await post("/sessions", { cwd, sessionId });
+      setTabs((cur) => [...cur, { id: s.id, title: s.title, shell: s.shell, cwd: s.cwd ?? cwd, exited: false }]);
       setActiveId(s.id);
     } catch (err) {
       console.error("[dsh-plugin-terminal] new tab failed:", err);
     } finally {
       setBusy(false);
     }
-  }, []);
+  }, [workspaceCwd, active?.cwd, sessionId]);
 
   /* x on a tab: delete session, drop tab, activate a neighbor */
   const closeTab = useCallback(async (id) => {
@@ -432,15 +465,18 @@ function TerminalPanel() {
     if (active === null) return;
     setBusy(true);
     try {
-      const s = await post("/sessions/" + active.id + "/restart", {});
-      setTabs((cur) => cur.map((t) => (t.id === active.id ? { id: s.id, title: active.title, shell: s.shell, exited: false } : t)));
+      /* prefer the tab's own persisted cwd (a tab may belong to a different
+       * workspace than the one currently on screen); legacy tabs without a
+       * persisted cwd fall back to the current workspace. */
+      const s = await post("/sessions/" + active.id + "/restart", { cwd: active.cwd ?? workspaceCwd });
+      setTabs((cur) => cur.map((t) => (t.id === active.id ? { id: s.id, title: active.title, shell: s.shell, cwd: s.cwd ?? active.cwd ?? workspaceCwd, exited: false } : t)));
       setActiveId(s.id);
     } catch (err) {
       console.error("[dsh-plugin-terminal] restart failed:", err);
     } finally {
       setBusy(false);
     }
-  }, [active]);
+  }, [active, workspaceCwd]);
 
   /* drag the resize grip: grow the panel upward */
   const startResize = useCallback((e) => {
