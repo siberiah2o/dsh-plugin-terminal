@@ -16,7 +16,7 @@ dsh plugin --profile web add dsh-plugin-terminal && dsh web
 
 | Collapsed | Expanded | Multi-tab |
 |---|---|---|
-| ![collapsed](docs/screenshot-collapsed.png) | ![panel](docs/screenshot-panel.png) | ![multitab](docs/screenshot-multitab.png) |
+| ![collapsed](https://raw.githubusercontent.com/siberiah2o/dsh-plugin-terminal/main/docs/screenshot-collapsed.png) | ![panel](https://raw.githubusercontent.com/siberiah2o/dsh-plugin-terminal/main/docs/screenshot-panel.png) | ![multitab](https://raw.githubusercontent.com/siberiah2o/dsh-plugin-terminal/main/docs/screenshot-multitab.png) |
 
 ## Features
 
