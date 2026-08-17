@@ -13,6 +13,7 @@
 import React from "react";
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
+import { WebLinksAddon } from "@xterm/addon-web-links";
 
 const PREFIX = "/terminal-panel";
 const HEIGHT_KEY = "dsh-plugin-terminal.height";
@@ -30,7 +31,7 @@ if (typeof document !== "undefined" && document.getElementById(XTERM_CSS_TAG) ==
 
 /* Codex-style bottom panel skin (DSH design tokens; terminal surface dark). */
 const STYLE_TAG = "dsh-plugin-terminal-styles";
-const PANEL_CSS = ".dshTermRoot{position:fixed;bottom:0;z-index:50;font-family:Inter,var(--dsw-font-family)}\n.dshTermBar{box-sizing:border-box;width:100%;height:34px;display:flex;align-items:center;gap:10px;padding:0 14px;background:var(--dsw-specific-tip);border-top:1px solid var(--dsw-alias-border-l1);cursor:pointer;color:var(--dsw-alias-label-primary);text-align:left;user-select:none;-webkit-user-select:none}\n.dshTermBar:focus-visible{outline:2px solid var(--dsw-alias-label-tertiary);outline-offset:-2px}\n.dshTermBarLead{color:var(--dsw-alias-label-tertiary);flex:none;place-items:center;display:grid}\n.dshTermBarTitle{min-width:0;flex:none;font-size:13px;font-weight:500;line-height:24px}\n.dshTermBarState{min-width:0;flex:auto;color:var(--dsw-alias-label-tertiary);font-size:12px;line-height:24px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}\n.dshTermBarActions{flex:none;align-items:center;gap:2px;display:flex}\n.dshTermBarAction{width:28px;height:28px;color:var(--dsw-alias-label-tertiary);cursor:pointer;background:0 0;border:none;border-radius:999px;flex:none;place-items:center;padding:0;display:grid}\n.dshTermBarAction:hover:not(:disabled){background:var(--dsw-alias-interactive-bg-hover)}\n.dshTermBarAction:focus-visible{outline:2px solid var(--dsw-alias-label-tertiary);outline-offset:-2px}\n.dshTermBarAction:disabled{cursor:default;opacity:.45}\n.dshTermBarChevron{width:14px;height:14px;color:var(--dsw-alias-label-tertiary);flex:none;place-items:center;display:grid}\n.dshTermPanel{box-sizing:border-box;width:100%;display:flex;flex-direction:column;background:var(--dsw-specific-tip);border-top:1px solid var(--dsw-alias-border-l1);overflow:hidden;animation:dshTermIn .16s ease-out}\n@keyframes dshTermIn{from{transform:translateY(14px);opacity:.4}to{transform:none;opacity:1}}\n.dshTermResize{flex:none;height:6px;cursor:ns-resize;touch-action:none;position:relative}\n.dshTermResize:after{content:'';position:absolute;left:0;right:0;top:2px;height:2px;border-radius:2px;background:transparent;transition:background .15s}\n.dshTermResize:hover:after{background:var(--dsw-alias-interactive-bg-hover)}\n.dshTermTabs{flex:none;box-sizing:border-box;height:36px;display:flex;align-items:center;gap:2px;padding:0 10px;border-bottom:1px solid var(--dsw-alias-border-l1);background:var(--dsw-specific-tip)}\n.dshTermTabsScroll{flex:1;min-width:0;display:flex;align-items:center;gap:2px;height:100%;overflow-x:auto;scrollbar-width:none}\n.dshTermTabsScroll::-webkit-scrollbar{display:none}\n.dshTermTabsLead{color:var(--dsw-alias-label-tertiary);flex:none;display:grid;place-items:center;margin-right:2px}\n.dshTermTabsState{flex:none;max-width:180px;color:var(--dsw-alias-label-tertiary);font-size:12px;line-height:24px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0 6px}\n.dshTermTab{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 6px 0 9px;border-radius:7px;border:none;background:transparent;color:var(--dsw-alias-label-tertiary);font-family:Inter,var(--dsw-font-family);font-size:12px;font-weight:500;cursor:pointer;flex:none;max-width:200px}\n.dshTermTab:hover{background:var(--dsw-alias-interactive-bg-hover)}\n.dshTermTab.isActive{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}\n.dshTermTab:focus-visible{outline:2px solid var(--dsw-alias-label-tertiary);outline-offset:-2px}\n.dshTermTab.isExited{opacity:.5}\n.dshTermTab.isExited .dshTermTabLabel{text-decoration:line-through;text-decoration-thickness:1px}\n.dshTermTabLabel{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}\n.dshTermTabLead{display:grid;place-items:center;flex:none;opacity:.7}\n.dshTermTabClose{width:20px;height:20px;border:none;background:transparent;color:inherit;border-radius:6px;display:grid;place-items:center;cursor:pointer;padding:0;opacity:0;flex:none}\n.dshTermTab:hover .dshTermTabClose,.dshTermTab.isActive .dshTermTabClose{opacity:.65}\n.dshTermTabClose:hover{opacity:1;background:var(--dsw-alias-interactive-bg-hover)}\n.dshTermNew{width:26px;height:26px;flex:none;border:none;background:transparent;color:var(--dsw-alias-label-tertiary);border-radius:7px;display:grid;place-items:center;cursor:pointer;padding:0}\n.dshTermNew:hover:not(:disabled){background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}\n.dshTermNew:focus-visible{outline:2px solid var(--dsw-alias-label-tertiary);outline-offset:-2px}\n.dshTermNew:disabled{cursor:default;opacity:.45}\n.dshTermCollapse{flex:none;display:grid;place-items:center;width:26px;height:26px;border:none;background:transparent;color:var(--dsw-alias-label-tertiary);border-radius:7px;cursor:pointer;padding:0}\n.dshTermCollapse:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}\n.dshTermBody{flex:auto;min-height:0;position:relative;background:#1e2128;box-shadow:inset 0 1px 0 var(--dsw-alias-border-l1)}\n.dshTermPane{position:absolute;inset:0;display:none;padding:4px 10px 8px;background:#1e2128}\n.dshTermPane.isActive{display:block}\n.dshTermEmpty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:#8b90a0;font-family:Inter,var(--dsw-font-family);font-size:12px}\n.dshTermEmptyBtn{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 12px;border-radius:8px;border:1px solid var(--dsw-alias-border-l1);background:#2a2e38;color:#e6e8ee;font-family:Inter,var(--dsw-font-family);font-size:12px;font-weight:500;cursor:pointer}\n.dshTermEmptyBtn:hover{background:#343946}\nbody.dshTermResizing{cursor:ns-resize!important;user-select:none!important;-webkit-user-select:none!important}";
+const PANEL_CSS = ".dshTermRoot{position:fixed;bottom:0;z-index:50;font-family:Inter,var(--dsw-font-family)}\n.dshTermBar{box-sizing:border-box;width:100%;height:34px;display:flex;align-items:center;gap:10px;padding:0 14px;background:var(--dsw-specific-tip);border-top:1px solid var(--dsw-alias-border-l1);cursor:pointer;color:var(--dsw-alias-label-primary);text-align:left;user-select:none;-webkit-user-select:none}\n.dshTermBar:focus-visible{outline:2px solid var(--dsw-alias-label-tertiary);outline-offset:-2px}\n.dshTermBarLead{color:var(--dsw-alias-label-tertiary);flex:none;place-items:center;display:grid}\n.dshTermBarTitle{min-width:0;flex:none;font-size:13px;font-weight:500;line-height:24px}\n.dshTermBarState{min-width:0;flex:auto;color:var(--dsw-alias-label-tertiary);font-size:12px;line-height:24px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}\n.dshTermBarActions{flex:none;align-items:center;gap:2px;display:flex}\n.dshTermBarAction{width:28px;height:28px;color:var(--dsw-alias-label-tertiary);cursor:pointer;background:0 0;border:none;border-radius:999px;flex:none;place-items:center;padding:0;display:grid}\n.dshTermBarAction:hover:not(:disabled){background:var(--dsw-alias-interactive-bg-hover)}\n.dshTermBarAction:focus-visible{outline:2px solid var(--dsw-alias-label-tertiary);outline-offset:-2px}\n.dshTermBarAction:disabled{cursor:default;opacity:.45}\n.dshTermBarChevron{width:28px;height:28px;color:var(--dsw-alias-label-tertiary);cursor:pointer;border-radius:999px;flex:none;place-items:center;padding:0;display:grid}\n.dshTermBarChevron:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}\n.dshTermPanel{box-sizing:border-box;width:100%;display:flex;flex-direction:column;background:var(--dsw-specific-tip);border-top:1px solid var(--dsw-alias-border-l1);overflow:hidden;animation:dshTermIn .16s ease-out}\n@keyframes dshTermIn{from{transform:translateY(14px);opacity:.4}to{transform:none;opacity:1}}\n.dshTermResize{flex:none;height:6px;cursor:ns-resize;touch-action:none;position:relative}\n.dshTermResize:after{content:'';position:absolute;left:0;right:0;top:2px;height:2px;border-radius:2px;background:transparent;transition:background .15s}\n.dshTermResize:hover:after{background:var(--dsw-alias-interactive-bg-hover)}\n.dshTermTabs{flex:none;box-sizing:border-box;height:36px;display:flex;align-items:center;gap:2px;padding:0 10px;border-bottom:1px solid var(--dsw-alias-border-l1);background:var(--dsw-specific-tip)}\n.dshTermTabsScroll{flex:1;min-width:0;display:flex;align-items:center;gap:2px;height:100%;overflow-x:auto;scrollbar-width:none}\n.dshTermTabsScroll::-webkit-scrollbar{display:none}\n.dshTermTabsLead{color:var(--dsw-alias-label-tertiary);flex:none;display:grid;place-items:center;margin-right:2px}\n.dshTermTabsState{flex:none;max-width:180px;color:var(--dsw-alias-label-tertiary);font-size:12px;line-height:24px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0 6px}\n.dshTermTab{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 6px 0 9px;border-radius:7px;border:none;background:transparent;color:var(--dsw-alias-label-tertiary);font-family:Inter,var(--dsw-font-family);font-size:12px;font-weight:500;cursor:pointer;flex:none;max-width:200px}\n.dshTermTab:hover{background:var(--dsw-alias-interactive-bg-hover)}\n.dshTermTab.isActive{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}\n.dshTermTab:focus-visible{outline:2px solid var(--dsw-alias-label-tertiary);outline-offset:-2px}\n.dshTermTab.isExited{opacity:.5}\n.dshTermTab.isExited .dshTermTabLabel{text-decoration:line-through;text-decoration-thickness:1px}\n.dshTermTabLabel{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}\n.dshTermTabLead{display:grid;place-items:center;flex:none;opacity:.7}\n.dshTermTabClose{width:20px;height:20px;border:none;background:transparent;color:inherit;border-radius:6px;display:grid;place-items:center;cursor:pointer;padding:0;opacity:0;flex:none}\n.dshTermTab:hover .dshTermTabClose,.dshTermTab.isActive .dshTermTabClose{opacity:.65}\n.dshTermTabClose:hover{opacity:1;background:var(--dsw-alias-interactive-bg-hover)}\n.dshTermNew{width:26px;height:26px;flex:none;border:none;background:transparent;color:var(--dsw-alias-label-tertiary);border-radius:7px;display:grid;place-items:center;cursor:pointer;padding:0}\n.dshTermNew:hover:not(:disabled){background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}\n.dshTermNew:focus-visible{outline:2px solid var(--dsw-alias-label-tertiary);outline-offset:-2px}\n.dshTermNew:disabled{cursor:default;opacity:.45}\n.dshTermCollapse{flex:none;display:grid;place-items:center;width:26px;height:26px;border:none;background:transparent;color:var(--dsw-alias-label-tertiary);border-radius:7px;cursor:pointer;padding:0}\n.dshTermCollapse:hover{background:var(--dsw-alias-interactive-bg-hover);color:var(--dsw-alias-label-primary)}\n.dshTermBody{flex:auto;min-height:0;position:relative;background:#1e2128;box-shadow:inset 0 1px 0 var(--dsw-alias-border-l1)}\n.dshTermPane{position:absolute;inset:0;display:none;padding:4px 10px 8px;background:#1e2128}\n.dshTermPane.isActive{display:block}\n.dshTermEmpty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:#8b90a0;font-family:Inter,var(--dsw-font-family);font-size:12px}\n.dshTermEmptyBtn{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 12px;border-radius:8px;border:1px solid var(--dsw-alias-border-l1);background:#2a2e38;color:#e6e8ee;font-family:Inter,var(--dsw-font-family);font-size:12px;font-weight:500;cursor:pointer}\n.dshTermEmptyBtn:hover{background:#343946}\nbody.dshTermResizing{cursor:ns-resize!important;user-select:none!important;-webkit-user-select:none!important}";
 if (typeof document !== "undefined" && document.getElementById(STYLE_TAG) === null) {
   const tag = document.createElement("style");
   tag.id = STYLE_TAG;
@@ -113,7 +114,7 @@ function ChevronUp14() {
   return React.createElement(
     "svg",
     { width: 14, height: 14, viewBox: "0 0 14 14", fill: "none", xmlns: "http://www.w3.org/2000/svg" },
-    React.createElement("path", { d: "M5.5 11.8486L5.07617 11.4238L2.34863 8.69727C2.09294 8.44157 1.86618 8.21562 1.70215 8.01172C1.53117 7.79912 1.38244 7.55595 1.33398 7.25C1.30778 7.08435 1.30778 6.91565 1.33398 6.75C1.38244 6.44405 1.53117 6.20088 1.70215 5.98828C1.86618 5.78438 2.09294 5.55843 2.34863 5.30273L5.07617 2.57617L5.5 2.15137L6.34863 3L5.92383 3.42383L3.19727 6.15137C2.92268 6.42595 2.75151 6.59876 2.6377 6.74023C2.53096 6.87291 2.52187 6.92272 2.51953 6.9375C2.51297 6.97895 2.51297 7.02105 2.51953 7.0625C2.52187 7.07728 2.53096 7.12709 2.6377 7.25977C2.75151 7.40124 2.92268 7.57405 3.19727 7.84863L5.92383 10.5762L6.34863 11L5.5 11.8486Z", fill: "currentColor" }),
+    React.createElement("path", { d: "M11.8486 8.5L11.4238 8.07617L8.69727 5.34863C8.44157 5.09294 8.21562 4.86618 8.01172 4.70215C7.79912 4.53117 7.55595 4.38244 7.25 4.33398C7.08435 4.30778 6.91565 4.30778 6.75 4.33398C6.44405 4.38244 6.20088 4.53117 5.98828 4.70215C5.78438 4.86618 5.55843 5.09294 5.30273 5.34863L2.57617 8.07617L2.15137 8.5L3 9.34863L3.42383 8.92383L6.15137 6.19727C6.42595 5.92268 6.59876 5.75151 6.74023 5.6377C6.87291 5.53096 6.92272 5.52187 6.9375 5.51953C6.97895 5.51297 7.02105 5.51297 7.0625 5.51953C7.07728 5.52187 7.12709 5.53096 7.25977 5.6377C7.40124 5.75151 7.57405 5.92268 7.84863 6.19727L10.5762 8.92383L11 9.34863L11.8486 8.5Z", fill: "currentColor" }),
   );
 }
 function ChevronDown14() {
@@ -184,6 +185,11 @@ function TermPane({ tab, active, onExit }) {
     });
     const fit = new FitAddon();
     term.loadAddon(fit);
+    /* Ctrl+click (Cmd+click on macOS) opens http(s) links in the browser.
+     * Plain clicks still select text, so this never steals selection. */
+    term.loadAddon(new WebLinksAddon((_event, uri) => {
+      window.open(uri, "_blank", "noopener,noreferrer");
+    }));
     term.open(host);
     requestAnimationFrame(() => {
       try {
@@ -195,6 +201,17 @@ function TermPane({ tab, active, onExit }) {
 
     const proto = location.protocol === "https:" ? "wss:" : "ws:";
     const ws = new WebSocket(proto + "//" + location.host + PREFIX + "/ws/" + tab.id);
+    ws.onopen = () => {
+      /* The mount effect's fit() runs in a rAF that can fire BEFORE the socket
+       * opens, so its onResize would be dropped (readyState !== OPEN) and the
+       * PTY would stay at the spawn default (80x24). Replay the current
+       * dimensions on connect so the shell repaints at the pane's real size -
+       * otherwise PSReadLine's "clear rows below the prompt" sequence overflows
+       * a short panel and leaves the cursor stranded on the bottom row. */
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: "resize", cols: term.cols, rows: term.rows }));
+      }
+    };
     ws.onmessage = (ev) => term.write(ev.data);
     ws.onclose = () => {
       if (wsRef.current === ws) {
@@ -213,7 +230,37 @@ function TermPane({ tab, active, onExit }) {
       }
     });
 
+    /* Xshell/PuTTY-style mouse shortcuts: releasing the mouse after selecting
+     * text copies it; right-click pastes the clipboard into the shell. */
+    const copySelection = () => {
+      if (!term.hasSelection()) return;
+      const text = term.getSelection();
+      if (!text) return;
+      try {
+        navigator.clipboard.writeText(text).catch(() => {});
+      } catch {
+        /* clipboard unavailable (e.g. non-secure context) */
+      }
+    };
+    const pasteClipboard = (ev) => {
+      ev.preventDefault();
+      try {
+        navigator.clipboard
+          .readText()
+          .then((text) => {
+            if (text) term.paste(text);
+          })
+          .catch(() => {});
+      } catch {
+        /* clipboard unavailable */
+      }
+    };
+    term.element.addEventListener("mouseup", copySelection);
+    term.element.addEventListener("contextmenu", pasteClipboard);
+
     return () => {
+      term.element.removeEventListener("mouseup", copySelection);
+      term.element.removeEventListener("contextmenu", pasteClipboard);
       ws.onclose = null;
       ws.close();
       term.dispose();
