@@ -21,7 +21,7 @@ dsh plugin --profile web add dsh-plugin-terminal && dsh web
 ## Features
 
 - Bottom panel pinned to the viewport, aligned with the conversation column; the input box always stays above the terminal
-- `Ctrl+`` toggles; drag the top grip to resize (120px–78% viewport, remembered)
+- Configurable shortcut toggles (default `Ctrl+``, e.g. `Ctrl+J`); drag the top grip to resize (120px–78% viewport, remembered)
 - Multi-tab: `+` new, ✕ close, ⟳ restart; processes keep running on tab switch; live sessions restore after refresh or workspace switch
 - Every terminal remembers its working directory: new tabs start in the current DSH workspace; after a `dsh web` restart, ⟳ brings the process back in its original directory instead of the server launch directory
 - **Terminals survive dsh web restarts**: session metadata + scrollback are persisted live to `$DSH_HOME/plugin-data/terminal/`; after a restart they come back as "exited" history tabs (full screen replay, one-click restart of the process); tabs you closed stay closed
@@ -29,6 +29,29 @@ dsh plugin --profile web add dsh-plugin-terminal && dsh web
 - WebSocket duplex channel to the PTY; dark terminal surface in both light and dark themes
 - Copy/paste: select with the mouse and release to copy, right-click to paste; `Ctrl+V` pastes, `Ctrl+Shift+C` / `Ctrl+Shift+V` copy/paste when the clipboard API is available
   - ⚠️ When the GUI is opened over **remote http** (not https / not localhost) browsers disable `navigator.clipboard` (insecure context) - the plugin falls back to `execCommand` copy and lets the browser's native context-menu Paste through, so both still work
+
+## Configuration
+
+Plugin behavior lives in the DSH settings document (`$DSH_HOME/settings.yaml`, section `terminal`), editable from the GUI at **Settings → Plugins**. Changes apply to sessions created afterwards — no restart needed; tabs that already exist keep the command they started with.
+
+| Field | Default | Meaning |
+|---|---|---|
+| `toggleShortcut` | `ctrl+`` | Keyboard shortcut toggling the bottom panel. Format: `[ctrl|shift|alt|meta]+[...]+key`, e.g. `ctrl+j`, `ctrl+shift+f1`. The key can be a letter, digit, F1–F12, or a name (```, space, enter, tab, up/down/left/right, home/end, pageup/pagedown, delete, backspace, escape). |
+| `shellCommand` | *(empty — auto-detect)* | Command line used to start **new** terminal sessions. Empty means the platform default (pwsh/powershell/cmd on Windows, `$SHELL` on POSIX). |
+
+Example — launch cmder on Windows and bind the panel to Ctrl+J:
+
+```yaml
+terminal:
+  toggleShortcut: ctrl+j
+  shellCommand: cmd.exe /k "C:\cmder\vendor\init.bat"
+```
+
+Notes:
+
+- `shellCommand` is used verbatim (no flags are injected): the command line is split on spaces with double quotes honored, so quoted paths work.
+- If the shortcut is a key the terminal also consumes (Ctrl+J is the shell's line feed), a press while a terminal pane has focus goes to the shell instead of toggling the panel.
+- Operator override: the environment variables `DSH_PLUGIN_TERMINAL_TOGGLE_SHORTCUT` and `DSH_PLUGIN_TERMINAL_SHELL_COMMAND` take precedence over the settings document (and are the only way to configure headless compositions without the settings service).
 
 ## Running codex / claude code in the panel
 

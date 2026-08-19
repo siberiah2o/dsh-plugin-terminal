@@ -6,7 +6,8 @@
  *
  * Layout: a full-width panel pinned to the viewport bottom (like the terminal
  * zone of Codex/VS Code bottom panels). Collapsed it is a single 34px bar;
- * expanded it grows upward with a drag-to-resize grip. Ctrl+` toggles it.
+ * expanded it grows upward with a drag-to-resize grip. A configurable
+ * shortcut (default Ctrl+`) toggles it - see /terminal-panel/config.
  * Visual language follows DSH design tokens, with the xterm surface always
  * dark (Campbell palette) so shell colors read in both themes.
  */
@@ -14,6 +15,7 @@ import React from "react";
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import { WebLinksAddon } from "@xterm/addon-web-links";
+import { parseShortcut, matchesShortcut } from "./shortcut.js";
 
 const PREFIX = "/terminal-panel";
 const HEIGHT_KEY = "dsh-plugin-terminal.height";
@@ -411,6 +413,11 @@ function TerminalPanel(props) {
   const [tabs, setTabs] = useState([]);
   const [activeId, setActiveId] = useState(null);
   const [busy, setBusy] = useState(false);
+  /** panel toggle shortcut, parsed from the host /config response */
+  const DEFAULT_SHORTCUT = parseShortcut("ctrl+`");
+  const [shortcut, setShortcut] = useState(DEFAULT_SHORTCUT);
+  const shortcutLabel = shortcut?.label ?? "Ctrl+`";
+
   const [height, setHeight] = useState(() => {
     try {
       const saved = Number(localStorage.getItem(HEIGHT_KEY));
@@ -519,17 +526,38 @@ function TerminalPanel(props) {
     newTab();
   }, [open, bootReady, tabs.length]);
 
-  /* Ctrl+` toggles the panel (Cmd+` is taken by the OS on macOS) */
+  /* fetch the host-side plugin config: the toggle shortcut (and, for future
+   * use, the configured shell command). Falls back to the defaults when the
+   * route is absent (older host). */
+  useEffect(() => {
+    (async () => {
+      try {
+        const cfg = await api("/config");
+        if (typeof cfg.toggleShortcut === "string" && cfg.toggleShortcut.trim().length > 0) {
+          const parsed = parseShortcut(cfg.toggleShortcut);
+          if (parsed !== null) setShortcut(parsed);
+          else console.warn("[dsh-plugin-terminal] ignoring invalid toggleShortcut:", cfg.toggleShortcut);
+        }
+      } catch {
+        /* older host without /config - keep defaults */
+      }
+    })();
+  }, []);
+
+  /* configurable toggle shortcut (default Ctrl+`, e.g. ctrl+j). When the
+   * shortcut is a control character the terminal also consumes (Ctrl+J is
+   * the shell's line feed), a press with focus inside a terminal pane is
+   * left to the shell instead of toggling the panel. */
   useEffect(() => {
     const onKey = (e) => {
-      if (e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey && e.code === "Backquote") {
-        e.preventDefault();
-        setOpen((v) => !v);
-      }
+      if (!matchesShortcut(shortcut, e)) return;
+      if (e.target instanceof HTMLElement && e.target.closest(".dshTermPane") !== null) return;
+      e.preventDefault();
+      setOpen((v) => !v);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  }, [shortcut]);
 
   const onExit = useCallback((id) => {
     setTabs((cur) => cur.map((t) => (t.id === id ? { ...t, exited: true } : t)));
@@ -695,7 +723,7 @@ function TerminalPanel(props) {
               "button",
               {
                 className: "dshTermCollapse",
-                title: "收起面板（Ctrl+`）",
+                title: "收起面板（" + shortcutLabel + "）",
                 "aria-label": "收起面板",
                 onClick: toggle,
               },
@@ -736,7 +764,7 @@ function TerminalPanel(props) {
             tabIndex: 0,
             "aria-expanded": open,
             "aria-controls": "dshTermPanel",
-            title: "终端面板（Ctrl+` 切换）",
+            title: "终端面板（" + shortcutLabel + " 切换）",
             onClick: toggle,
             onKeyDown: (e) => {
               if (e.key === "Enter" || e.key === " ") {
