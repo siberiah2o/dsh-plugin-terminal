@@ -27,6 +27,8 @@ dsh plugin --profile web add dsh-plugin-terminal && dsh web
 - **Terminals survive dsh web restarts**: session metadata + scrollback are persisted live to `$DSH_HOME/plugin-data/terminal/`; after a restart they come back as "exited" history tabs (full screen replay, one-click restart of the process); tabs you closed stay closed
 - xterm.js 6: colors, blinking cursor, alternate screen, Unicode v11 (CJK width tables), 10000-line scrollback
 - WebSocket duplex channel to the PTY; dark terminal surface in both light and dark themes
+- Copy/paste: select with the mouse and release to copy, right-click to paste; `Ctrl+V` pastes, `Ctrl+Shift+C` / `Ctrl+Shift+V` copy/paste when the clipboard API is available
+  - ⚠️ When the GUI is opened over **remote http** (not https / not localhost) browsers disable `navigator.clipboard` (insecure context) - the plugin falls back to `execCommand` copy and lets the browser's native context-menu Paste through, so both still work
 
 ## Running codex / claude code in the panel
 

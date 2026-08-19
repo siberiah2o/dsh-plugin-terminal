@@ -231,30 +231,96 @@ function TermPane({ tab, active, onExit }) {
     });
 
     /* Xshell/PuTTY-style mouse shortcuts: releasing the mouse after selecting
-     * text copies it; right-click pastes the clipboard into the shell. */
-    const copySelection = () => {
+     * text copies it; right-click pastes the clipboard into the shell.
+     *
+     * Clipboard access is two-tier:
+     * - navigator.clipboard (Async Clipboard API) is fast but ONLY exists in
+     *   secure contexts (https, or http://localhost/127.0.0.1). When the GUI
+     *   is opened from another machine over plain http - the "remote" case -
+     *   it is undefined and any call throws. Copy therefore falls back to the
+     *   legacy document.execCommand("copy") via a temp textarea, which works
+     *   in insecure contexts too.
+     * - Reading the clipboard has no insecure-context fallback API, so when
+     *   navigator.clipboard is missing we do NOT swallow the native context
+     *   menu: its "Paste" item feeds the focused xterm textarea and xterm's
+     *   own paste event forwards the text into the shell. Ctrl+V inside the
+     *   terminal already works that way in every context. */
+    const legacyCopy = (text) => {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.setAttribute("readonly", "");
+      ta.style.position = "fixed";
+      ta.style.left = "-9999px";
+      document.body.appendChild(ta);
+      ta.select();
+      let ok = false;
+      try {
+        ok = document.execCommand("copy");
+      } catch {
+        ok = false;
+      }
+      document.body.removeChild(ta);
+      return ok;
+    };
+    const writeClipboard = (text) => {
+      if (typeof navigator.clipboard?.writeText === "function") {
+        navigator.clipboard.writeText(text).catch(() => legacyCopy(text));
+      } else {
+        legacyCopy(text);
+      }
+    };
+    const copySelection = (ev) => {
+      /* left-button release only: right-click is paste, don't re-copy */
+      if (ev.button !== 0) return;
       if (!term.hasSelection()) return;
       const text = term.getSelection();
       if (!text) return;
-      try {
-        navigator.clipboard.writeText(text).catch(() => {});
-      } catch {
-        /* clipboard unavailable (e.g. non-secure context) */
-      }
+      writeClipboard(text);
     };
     const pasteClipboard = (ev) => {
-      ev.preventDefault();
-      try {
-        navigator.clipboard
-          .readText()
-          .then((text) => {
-            if (text) term.paste(text);
-          })
-          .catch(() => {});
-      } catch {
-        /* clipboard unavailable */
+      if (typeof navigator.clipboard?.readText !== "function") {
+        /* insecure context (remote http / iframe permissions policy): let the
+         * browser's native context menu show - its Paste item reaches the
+         * focused xterm textarea and pastes into the shell */
+        return;
       }
+      ev.preventDefault();
+      navigator.clipboard
+        .readText()
+        .then((text) => {
+          if (text) term.paste(text);
+        })
+        .catch(() => {
+          /* permission denied; Ctrl+V still pastes natively */
+        });
     };
+    /* VS Code-style Ctrl+Shift+C / Ctrl+Shift+V - attempted when the Async
+     * Clipboard API exists (secure context); the keys NEVER reach the shell,
+     * so Ctrl+C stays SIGINT and Ctrl+V keeps pasting natively. */
+    const onCustomKey = (ev) => {
+      if (ev.type !== "keydown") return true;
+      if (!(ev.ctrlKey && ev.shiftKey && !ev.altKey && !ev.metaKey)) return true;
+      const k = ev.key.toLowerCase();
+      if (k === "c") {
+        if (typeof navigator.clipboard?.writeText === "function" && term.hasSelection()) {
+          writeClipboard(term.getSelection());
+        }
+        return false;
+      }
+      if (k === "v") {
+        if (typeof navigator.clipboard?.readText === "function") {
+          navigator.clipboard
+            .readText()
+            .then((text) => {
+              if (text) term.paste(text);
+            })
+            .catch(() => {});
+        }
+        return false;
+      }
+      return true;
+    };
+    term.attachCustomKeyEventHandler(onCustomKey);
     term.element.addEventListener("mouseup", copySelection);
     term.element.addEventListener("contextmenu", pasteClipboard);
 

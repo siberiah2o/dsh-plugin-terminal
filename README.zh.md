@@ -27,6 +27,8 @@ dsh plugin --profile web add dsh-plugin-terminal && dsh web
 - **重启 dsh web 不丢终端**：会话元数据 + 滚动缓冲实时落盘（`$DSH_HOME/plugin-data/terminal/`），重启后恢复为"已退出"历史标签（画面完整回放，点 ⟳ 一键重启进程）；手动关闭的标签不留痕
 - xterm.js 6：颜色、闪烁光标、备用屏幕、Unicode v11（CJK 宽度表）、10000 行回滚
 - WebSocket 直连 PTY，低延迟；深浅主题下终端颜色均可读
+- 复制粘贴：拖选后松开鼠标自动复制，右键粘贴；`Ctrl+V` 粘贴、`Ctrl+Shift+C` / `Ctrl+Shift+V` 复制/粘贴（剪贴板 API 可用时）
+  - ⚠️ 通过**远程 http**（非 https / 非 localhost）访问 GUI 时，浏览器会禁用 `navigator.clipboard`（非安全上下文）——插件会自动退回 `execCommand` 复制、并放行浏览器原生右键菜单粘贴，两种方式都能用
 
 ## 在面板里运行 codex / claude code
 
